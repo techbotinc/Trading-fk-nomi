@@ -30,11 +30,13 @@
 
   <!-- Main Content -->
   <main class="px-4 py-4">
-    <!-- Trading Chart -->
-    <div class="bg-gray-800 p-4 rounded-lg shadow-lg max-w-xl mx-auto">
-      <h2 id="chartTitle" class="text-center text-xl font-semibold mb-2">BTC Price</h2>
-      <!-- Increased height using inline style -->
-      <canvas id="tradingChart" class="w-full" style="height: 24rem;"></canvas>
+    <!-- Trading Chart in a horizontally scrollable container -->
+    <div class="overflow-x-auto no-scrollbar smooth-scroll">
+      <div class="bg-gray-800 p-4 rounded-lg shadow-lg" style="width: 1200px; margin: auto;">
+        <h2 id="chartTitle" class="text-center text-xl font-semibold mb-2">BTC Price</h2>
+        <!-- Increased height using inline style -->
+        <canvas id="tradingChart" class="w-full" style="height: 24rem;"></canvas>
+      </div>
     </div>
 
     <!-- Crypto Card List -->
@@ -178,7 +180,7 @@
     const cryptoList = document.getElementById("cryptoList");
     const cryptoSymbols = Object.keys(cryptoPrices);
     function updateCryptoCards() {
-      // Preserve scroll position
+      // Preserve current scroll position
       let scrollPos = cryptoList.scrollLeft;
       cryptoList.innerHTML = "";
       cryptoSymbols.forEach(symbol => {
@@ -189,7 +191,6 @@
         let arrow = change >= 0 ? "▲" : "▼";
         let card = document.createElement("div");
         card.className = "p-3 bg-gray-800 rounded-lg text-center w-32 cursor-pointer hover:bg-gray-700 transition-colors";
-        // Note: Using template literals for dynamic class for text color may not work as expected.
         card.innerHTML = `<p class="font-semibold">${symbol}</p>
                           <p class="text-sm ${color === 'green' ? 'text-green-500' : 'text-red-500'}">${arrow} $${price}</p>`;
         card.onclick = () => { selectCrypto(symbol); };
