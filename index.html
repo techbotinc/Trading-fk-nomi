@@ -240,17 +240,6 @@
         }
 
         setInterval(updateChart, 5000);
-
-        const cryptoList = document.getElementById("cryptoList");
-        const cryptos = ["BTC", "ETH", "XRP", "LTC", "ADA"];
-        function updateCryptoPrices() {
-            cryptoList.innerHTML = "";
-            cryptos.forEach(crypto => {
-                let price = (Math.random() * 5000 + 1000).toFixed(2);
-                cryptoList.innerHTML += `<div class="crypto-card"><span>${crypto}</span>$${price}</div>`;
-            });
-        }
-        setInterval(updateCryptoPrices, 5000);
     </script>
 </body>
 </html>
