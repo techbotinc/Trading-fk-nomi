@@ -122,6 +122,7 @@
         let labels = [];
         let prices = [];
         let lastPrice = 50000; // Starting BTC price
+        let lineColor = "green";
 
         function getRandomPrice(lastPrice) {
             let change = (Math.random() * 2 - 1) * 500; // Random change between -500 to +500
@@ -141,11 +142,11 @@
                 datasets: [{
                     label: "BTC Price",
                     data: prices,
-                    borderColor: "white",
-                    backgroundColor: "rgba(255, 255, 255, 0.2)",
-                    fill: true,
-                    borderWidth: 2,
-                    tension: 0.3, // Smooth curve
+                    borderColor: lineColor,
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    fill: false,
+                    borderWidth: 1.5,
+                    tension: 0.2, // Smooth curve
                 }],
             },
             options: {
@@ -162,8 +163,13 @@
             labels.push(`T+${labels.length}`);
             labels.shift();
 
-            lastPrice = getRandomPrice(lastPrice);
-            prices.push(lastPrice);
+            let newPrice = getRandomPrice(prices[prices.length - 1]);
+
+            // Change line color based on price movement
+            lineColor = newPrice > prices[prices.length - 1] ? "green" : "red";
+            chart.data.datasets[0].borderColor = lineColor;
+
+            prices.push(newPrice);
             prices.shift();
 
             chart.update();
@@ -189,10 +195,13 @@
             if (previousPrices[id] !== null) {
                 if (newPrice > previousPrices[id]) {
                     element.innerHTML = `${name}: $${newPrice} <span class="up">▲</span>`;
+                    element.style.color = "green";
                 } else if (newPrice < previousPrices[id]) {
                     element.innerHTML = `${name}: $${newPrice} <span class="down">▼</span>`;
+                    element.style.color = "red";
                 } else {
                     element.innerHTML = `${name}: $${newPrice}`;
+                    element.style.color = "white";
                 }
             } else {
                 element.innerHTML = `${name}: $${newPrice}`;
