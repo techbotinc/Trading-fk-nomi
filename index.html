@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleek Trading App</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e1e2f 0%, #27293d 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .header {
+            background: rgba(30, 30, 47, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .pair-selector {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .pair-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .pair-btn.active, .pair-btn:hover {
+            background: linear-gradient(45deg, #ff3366, #e94560);
+            color: #fff;
+        }
+
+        .chart-container {
+            background: rgba(30, 30, 47, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            height: 300px;
+        }
+
+        .signals-container {
+            background: rgba(30, 30, 47, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .signal-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .signal-buy {
+            border-left: 4px solid #00cc99;
+        }
+
+        .signal-sell {
+            border-left: 4px solid #ff3366;
+        }
+
+        .order-container {
+            background: rgba(30, 30, 47, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .order-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        select, input {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .order-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #ff3366, #e94560);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .order-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #e94560;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .chart-container {
+                height: 250px;
+            }
+            .signals-container {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="pair-selector" id="pairSelector">
+                <div class="pair-btn active" data-pair="BTC/USD">BTC/USD <span class="price">56894.32</span></div>
+                <div class="pair-btn" data-pair="ETH/USD">ETH/USD <span class="price">2345.67</span></div>
+                <div class="pair-btn" data-pair="XRP/USD">XRP/USD <span class="price">0.5432</span></div>
+                <div class="pair-btn" data-pair="LTC/USD">LTC/USD <span class="price">89.45</span></div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="priceChart"></canvas>
+        </div>
+
+        <div class="signals-container">
+            <h2>Trading Signals</h2>
+            <div id="signalsList"></div>
+        </div>
+
+        <div class="order-container">
+            <h2>Place Order</h2>
+            <div class="order-form">
+                <div class="input-group">
+                    <select id="orderPair">
+                        <option value="BTC/USD">BTC/USD</option>
+                        <option value="ETH/USD">ETH/USD</option>
+                        <option value="XRP/USD">XRP/USD</option>
+                        <option value="LTC/USD">LTC/USD</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="orderAmount" placeholder="Amount">
+                </div>
+                <div class="input-group">
+                    <input type="number" id="orderPrice" placeholder="Price">
+                </div>
+                <button class="order-btn" onclick="placeOrder()">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pairButtons = document.querySelectorAll('.pair-btn');
+        const orderPair = document.getElementById('orderPair');
+        const signalsList = document.getElementById('signalsList');
+        let currentPair = 'BTC/USD';
+        let chart;
+
+        // Chart initialization
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const initialData = Array(20).fill(0).map((_, i) => ({
+            x: new Date().getTime() - (20 - i) * 1000,
+            y: 56894.32 + (Math.random() - 0.5) * 1000
+        }));
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Price',
+                    data: initialData,
+                    borderColor: '#e94560',
+                    backgroundColor: 'rgba(233, 69, 96, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Signals',
+                    data: [],
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: [],
+                    showLine: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { type: 'time', time: { unit: 'second' }, display: false },
+                    y: { ticks: { color: '#e0e0e0' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Pair selection
+        pairButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                pairButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPair = btn.dataset.pair;
+                orderPair.value = currentPair;
+                resetChart();
+            });
+        });
+
+        // Price updates
+        function updatePrices() {
+            pairButtons.forEach(btn => {
+                const priceSpan = btn.querySelector('.price');
+                let price = parseFloat(priceSpan.textContent);
+                const change = (Math.random() - 0.5) * 100;
+                price += change;
+                priceSpan.textContent = price.toFixed(2);
+
+                if (btn.dataset.pair === currentPair) {
+                    chart.data.datasets[0].data.push({
+                        x: new Date().getTime(),
+                        y: price
+                    });
+                    if (chart.data.datasets[0].data.length > 20) {
+                        chart.data.datasets[0].data.shift();
+                    }
+                    chart.update();
+                }
+            });
+        }
+
+        // Generate random signal
+        function generateRandomSignal() {
+            const directions = ['BUY', 'SELL'];
+            const direction = directions[Math.floor(Math.random() * 2)];
+            const currentPrice = parseFloat(document.querySelector(`[data-pair="${currentPair}"] .price`).textContent);
+            const entryPrice = currentPrice + (Math.random() * 100 - 50);
+            const stopLoss = direction === 'BUY' ? entryPrice * 0.95 : entryPrice * 1.05;
+            const takeProfit = direction === 'BUY' ? entryPrice * 1.05 : entryPrice * 0.95;
+
+            const signal = {
+                pair: currentPair,
+                direction,
+                entryPrice: entryPrice.toFixed(2),
+                stopLoss: stopLoss.toFixed(2),
+                takeProfit: takeProfit.toFixed(2),
+                time: new Date().toLocaleTimeString()
+            };
+
+            // Add to chart
+            chart.data.datasets[1].data.push({
+                x: new Date().getTime(),
+                y: parseFloat(signal.entryPrice),
+                backgroundColor: direction === 'BUY' ? '#00cc99' : '#ff3366'
+            });
+            chart.data.datasets[1].pointBackgroundColor.push(direction === 'BUY' ? '#00cc99' : '#ff3366');
+            if (chart.data.datasets[1].data.length > 5) {
+                chart.data.datasets[1].data.shift();
+                chart.data.datasets[1].pointBackgroundColor.shift();
+            }
+            chart.update();
+
+            return signal;
+        }
+
+        // Display signal
+        function displaySignal(signal) {
+            const signalElement = document.createElement('div');
+            signalElement.classList.add('signal-item', `signal-${signal.direction.toLowerCase()}`);
+            signalElement.innerHTML = `
+                <strong>${signal.pair} - ${signal.direction}</strong><br>
+                Entry: ${signal.entryPrice}<br>
+                SL: ${signal.stopLoss}<br>
+                TP: ${signal.takeProfit}<br>
+                Time: ${signal.time}
+            `;
+            signalsList.insertBefore(signalElement, signalsList.firstChild);
+            if (signalsList.children.length > 5) {
+                signalsList.removeChild(signalsList.lastChild);
+            }
+        }
+
+        // Place order
+        function placeOrder() {
+            const pair = orderPair.value;
+            const amount = document.getElementById('orderAmount').value;
+            const price = document.getElementById('orderPrice').value;
+            if (amount && price) {
+                alert(`Order placed!\nPair: ${pair}\nAmount: ${amount}\nPrice: ${price}`);
+                document.getElementById('orderAmount').value = '';
+                document.getElementById('orderPrice').value = '';
+            } else {
+                alert('Please fill in all fields');
+            }
+        }
+
+        // Reset chart
+        function resetChart() {
+            const initialPrice = parseFloat(document.querySelector(`[data-pair="${currentPair}"] .price`).textContent);
+            chart.data.datasets[0].data = Array(20).fill(0).map((_, i) => ({
+                x: new Date().getTime() - (20 - i) * 1000,
+                y: initialPrice + (Math.random() - 0.5) * 1000
+            }));
+            chart.data.datasets[1].data = [];
+            chart.data.datasets[1].pointBackgroundColor = [];
+            chart.update();
+        }
+
+        // Intervals
+        setInterval(updatePrices, 2000);
+        setInterval(() => {
+            const signal = generateRandomSignal();
+            displaySignal(signal);
+        }, 5000);
+
+        // Initial setup
+        pairButtons[0].classList.add('active');
+        displaySignal(generateRandomSignal());
+    </script>
+</body>
+</html>
