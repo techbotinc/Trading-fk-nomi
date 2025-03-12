@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>X Trade - Crypto Trading Dashboard</title>
+  <title>X Trade - Pocket Options Inspired</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js via CDN -->
@@ -11,31 +11,41 @@
   <!-- Time adapter for Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
+    /* Custom styles inspired by Pocket Options */
+    body {
+      background: linear-gradient(135deg, #0e0e0e, #1b1b1b);
+    }
     /* Hide scrollbar for horizontal lists */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .smooth-scroll { scroll-behavior: smooth; }
+    /* Neon glow effect */
+    .neon {
+      text-shadow: 0 0 5px #00ffea, 0 0 10px #00ffea, 0 0 20px #00ffea;
+    }
+    /* Button glow on hover */
+    .btn-neon:hover {
+      box-shadow: 0 0 8px rgba(0, 255, 234, 0.8);
+    }
   </style>
 </head>
-<body class="bg-gray-900 text-white font-sans">
+<body class="text-white font-sans">
 
   <!-- Header -->
-  <header class="bg-gray-800 border-b border-gray-700 p-4 sticky top-0 z-50 flex justify-between items-center">
+  <header class="bg-gray-900 border-b border-gray-800 p-4 sticky top-0 z-50 flex justify-between items-center">
     <div class="flex items-center space-x-2">
-      <div class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold text-xl">X</div>
-      <span class="text-xl font-bold">X Trade</span>
+      <div class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold text-xl neon">X</div>
+      <span class="text-2xl font-bold neon">X Trade</span>
     </div>
-    <div id="balance" class="text-lg font-semibold">Balance: $10,000</div>
+    <div id="balance" class="text-lg font-semibold neon">Balance: $10,000</div>
   </header>
 
   <!-- Main Content -->
-  <main class="px-4 py-4">
-    <!-- Trading Chart in a horizontally scrollable container -->
+  <main class="px-4 py-6">
+    <!-- Trading Chart Container (Horizontally scrollable if needed) -->
     <div class="overflow-x-auto no-scrollbar smooth-scroll">
-      <!-- Graph Card Container with explicit height (h-96 = 24rem) -->
-      <div id="chartContainer" class="bg-gray-800 p-4 rounded-lg shadow-lg mx-auto h-96" style="min-width: 100%;">
-        <h2 id="chartTitle" class="text-center text-xl font-semibold mb-2">BTC Price</h2>
-        <!-- Canvas fills the container's height -->
+      <div id="chartContainer" class="bg-gray-800 p-4 rounded-lg shadow-xl mx-auto h-96" style="min-width: 100%;">
+        <h2 id="chartTitle" class="text-center text-2xl font-semibold mb-4 neon">BTC Price</h2>
         <canvas id="tradingChart" class="w-full h-full"></canvas>
       </div>
     </div>
@@ -50,15 +60,15 @@
 
   <!-- Fixed Buy & Sell Buttons -->
   <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
-    <button onclick="openTradeModal('buy')" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-bold">Buy</button>
-    <button onclick="openTradeModal('sell')" class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold">Sell</button>
+    <button onclick="openTradeModal('buy')" class="btn-neon bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-bold">Buy</button>
+    <button onclick="openTradeModal('sell')" class="btn-neon bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold">Sell</button>
   </div>
 
   <!-- Trade Modal -->
-  <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+  <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center">
     <div class="bg-gray-800 p-6 rounded-lg w-11/12 max-w-md relative">
       <button onclick="closeTradeModal()" class="absolute top-2 right-2 text-2xl font-bold">&times;</button>
-      <h2 id="modalTitle" class="text-xl font-semibold mb-4">Transaction</h2>
+      <h2 id="modalTitle" class="text-2xl font-semibold mb-4 neon">Transaction</h2>
       <input type="text" id="txnName" placeholder="Your Name" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
       <input type="text" id="txnPhone" placeholder="Phone Number" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
       <input type="number" id="txnAmount" placeholder="Amount ($)" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
