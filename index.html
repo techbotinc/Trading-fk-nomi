@@ -12,10 +12,8 @@
     /* Hide scrollbar for horizontal crypto list */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    /* Optional: smooth scrolling animation (if desired) */
-    .smooth-scroll {
-      scroll-behavior: smooth;
-    }
+    /* Optional smooth scroll */
+    .smooth-scroll { scroll-behavior: smooth; }
   </style>
 </head>
 <body class="bg-gray-900 text-white font-sans">
@@ -70,12 +68,12 @@
 
   <!-- JavaScript -->
   <script>
-    // Global Variables
+    // Global variables
     let balance = 10000;
     let selectedCrypto = "BTC";
     let prevChartPrice = null;
-
-    // Simulated crypto prices for demo purposes
+    
+    // Simulated crypto base prices for demonstration
     const cryptoPrices = {
       BTC: 50000,
       ETH: 3500,
@@ -88,7 +86,7 @@
       BNB: 400
     };
 
-    // Update Balance Display
+    // Update balance display
     function updateBalanceDisplay() {
       document.getElementById("balance").innerText = `Balance: $${balance.toFixed(2)}`;
     }
@@ -96,11 +94,9 @@
 
     // Chart.js Setup with Gradient Fill & Time Scale
     const ctx = document.getElementById("tradingChart").getContext("2d");
-    // Create gradients for rising (green) and falling (red) prices
     const gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
     gradientGreen.addColorStop(0, "rgba(0,255,0,0.4)");
     gradientGreen.addColorStop(1, "rgba(0,0,0,0)");
-
     const gradientRed = ctx.createLinearGradient(0, 0, 0, 300);
     gradientRed.addColorStop(0, "rgba(255,0,0,0.4)");
     gradientRed.addColorStop(1, "rgba(0,0,0,0)");
@@ -141,9 +137,8 @@
       }
     });
 
-    // Update Chart with Simulated Data
+    // Update chart with simulated data
     function updateChart() {
-      // Define realistic price ranges for each crypto
       let min = 10000, max = 60000;
       switch(selectedCrypto) {
         case "BTC": min = 10000; max = 60000; break;
@@ -157,8 +152,6 @@
         case "BNB": min = 100; max = 700; break;
       }
       let newPrice = (Math.random() * (max - min) + min).toFixed(2);
-
-      // Update chart colors based on price movement
       if (prevChartPrice !== null) {
         if (newPrice > prevChartPrice) {
           tradingChart.data.datasets[0].borderColor = "green";
@@ -179,20 +172,23 @@
     }
     setInterval(updateChart, 5000);
 
-    // Update Crypto Card List with Simulated Prices and Signals
+    // Update crypto card list with simulated prices and directional signals
     const cryptoList = document.getElementById("cryptoList");
     const cryptoSymbols = Object.keys(cryptoPrices);
     function updateCryptoCards() {
       cryptoList.innerHTML = "";
       cryptoSymbols.forEach(symbol => {
-        let price = (Math.random() * (cryptoPrices[symbol] * 0.1) + cryptoPrices[symbol]).toFixed(2);
+        let basePrice = cryptoPrices[symbol];
+        // Simulate a price variation
+        let price = (Math.random() * (basePrice * 0.1) + basePrice).toFixed(2);
         let change = (Math.random() - 0.5) * 10;
         let color = change >= 0 ? "green" : "red";
         let arrow = change >= 0 ? "▲" : "▼";
+        let textClass = change >= 0 ? "text-green-500" : "text-red-500";
         let card = document.createElement("div");
         card.className = "p-3 bg-gray-800 rounded-lg text-center w-32 cursor-pointer hover:bg-gray-700 transition-colors";
         card.innerHTML = `<p class="font-semibold">${symbol}</p>
-                          <p class="text-sm text-${color}-500">${arrow} $${price}</p>`;
+                          <p class="text-sm ${textClass}">${arrow} $${price}</p>`;
         card.onclick = () => { selectCrypto(symbol); };
         cryptoList.appendChild(card);
       });
@@ -200,10 +196,10 @@
     updateCryptoCards();
     setInterval(updateCryptoCards, 5000);
 
-    // When a crypto card is clicked, update the chart for that crypto
+    // When a crypto card is clicked, update chart for that crypto
     function selectCrypto(symbol) {
       selectedCrypto = symbol;
-      prevChartPrice = null; // Reset previous price for new simulation
+      prevChartPrice = null;
       tradingChart.data.datasets[0].label = symbol + " Price";
       document.getElementById("chartTitle").innerText = symbol + " Price";
       tradingChart.data.labels = [];
@@ -211,11 +207,40 @@
       tradingChart.update();
     }
 
-    // Auto-scroll for crypto cards (smooth scrolling)
+    // Auto-scroll crypto cards smoothly
     setInterval(() => {
       cryptoList.scrollBy({ left: 2, behavior: "smooth" });
     }, 100);
 
+    // Trade Modal Functions
+    function openTradeModal(type) {
+      document.getElementById("modalTitle").innerText = type === "buy" ? "Buy Crypto" : "Sell Crypto";
+      document.getElementById("tradeModal").dataset.type = type;
+      document.getElementById("tradeModal").classList.remove("hidden");
+    }
+    function closeTradeModal() {
+      document.getElementById("tradeModal").classList.add("hidden");
+    }
+    function submitTrade() {
+      let type = document.getElementById("tradeModal").dataset.type;
+      let amount = parseFloat(document.getElementById("txnAmount").value);
+      if (isNaN(amount) || amount <= 0) {
+        alert("Enter a valid amount");
+        return;
+      }
+      if (type === "buy" && amount > balance) {
+        alert("Insufficient balance!");
+        return;
+      }
+      balance += type === "buy" ? -amount : amount;
+      updateBalanceDisplay();
+      alert(type === "buy" ? "Purchase Successful!" : "Sale Successful!");
+      // Clear modal fields
+      document.getElementById("txnName").value = "";
+      document.getElementById("txnPhone").value = "";
+      document.getElementById("txnAmount").value = "";
+      closeTradeModal();
+    }
   </script>
 </body>
 </html>
