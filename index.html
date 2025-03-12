@@ -1,266 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>X Trade - Pocket Options Inspired</title>
-  <!-- Tailwind CSS via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Time adapter for Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-  <style>
-    /* Custom styles inspired by Pocket Options */
-    body {
-      background: linear-gradient(135deg, #0e0e0e, #1b1b1b);
-    }
-    /* Hide scrollbar for horizontal lists */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .smooth-scroll { scroll-behavior: smooth; }
-    /* Neon glow effect */
-    .neon {
-      text-shadow: 0 0 5px #00ffea, 0 0 10px #00ffea, 0 0 20px #00ffea;
-    }
-    /* Button glow on hover */
-    .btn-neon:hover {
-      box-shadow: 0 0 8px rgba(0, 255, 234, 0.8);
-    }
-  </style>
-</head>
-<body class="text-white font-sans">
-
-  <!-- Header -->
-  <header class="bg-gray-900 border-b border-gray-800 p-4 sticky top-0 z-50 flex justify-between items-center">
-    <div class="flex items-center space-x-2">
-      <div class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold text-xl neon">X</div>
-      <span class="text-2xl font-bold neon">X Trade</span>
-    </div>
-    <div id="balance" class="text-lg font-semibold neon">Balance: $10,000</div>
-  </header>
-
-  <!-- Main Content -->
-  <main class="px-4 py-6">
-    <!-- Trading Chart Container (Horizontally scrollable if needed) -->
-    <div class="overflow-x-auto no-scrollbar smooth-scroll">
-      <div id="chartContainer" class="bg-gray-800 p-4 rounded-lg shadow-xl mx-auto h-96" style="min-width: 100%;">
-        <h2 id="chartTitle" class="text-center text-2xl font-semibold mb-4 neon">BTC Price</h2>
-        <canvas id="tradingChart" class="w-full h-full"></canvas>
-      </div>
-    </div>
-
-    <!-- Crypto Card List -->
-    <div class="mt-6 overflow-x-auto no-scrollbar smooth-scroll">
-      <div id="cryptoList" class="flex space-x-4">
-        <!-- Crypto cards injected by JavaScript -->
-      </div>
-    </div>
-  </main>
-
-  <!-- Fixed Buy & Sell Buttons -->
-  <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
-    <button onclick="openTradeModal('buy')" class="btn-neon bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-bold">Buy</button>
-    <button onclick="openTradeModal('sell')" class="btn-neon bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold">Sell</button>
-  </div>
-
-  <!-- Trade Modal -->
-  <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center">
-    <div class="bg-gray-800 p-6 rounded-lg w-11/12 max-w-md relative">
-      <button onclick="closeTradeModal()" class="absolute top-2 right-2 text-2xl font-bold">&times;</button>
-      <h2 id="modalTitle" class="text-2xl font-semibold mb-4 neon">Transaction</h2>
-      <input type="text" id="txnName" placeholder="Your Name" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
-      <input type="text" id="txnPhone" placeholder="Phone Number" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
-      <input type="number" id="txnAmount" placeholder="Amount ($)" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
-      <select id="txnMethod" class="w-full p-3 mb-4 rounded bg-gray-700">
-        <option value="Card">Card</option>
-        <option value="Easypaisa">EasyPaisa</option>
-        <option value="JazzCash">JazzCash</option>
-      </select>
-      <button onclick="submitTrade()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg">Confirm</button>
-    </div>
-  </div>
-
-  <!-- JavaScript -->
-  <script>
-    // Global variables
-    let balance = 10000;
-    let selectedCrypto = "BTC";
-    let prevChartPrice = null;
-    
-    // Simulated crypto base prices for demonstration
-    const cryptoPrices = {
-      BTC: 50000,
-      ETH: 3500,
-      XRP: 1.2,
-      LTC: 180,
-      ADA: 1.5,
-      DOT: 30,
-      DOGE: 0.25,
-      SOL: 120,
-      BNB: 400
-    };
-
-    // Update balance display
-    function updateBalanceDisplay() {
-      document.getElementById("balance").innerText = `Balance: $${balance.toFixed(2)}`;
-    }
-    updateBalanceDisplay();
-
-    // Chart.js Setup with Gradient Fill & Time Scale
-    const ctx = document.getElementById("tradingChart").getContext("2d");
-    const gradientGreen = ctx.createLinearGradient(0, 0, 0, 400);
-    gradientGreen.addColorStop(0, "rgba(0,255,0,0.4)");
-    gradientGreen.addColorStop(1, "rgba(0,0,0,0)");
-    const gradientRed = ctx.createLinearGradient(0, 0, 0, 400);
-    gradientRed.addColorStop(0, "rgba(255,0,0,0.4)");
-    gradientRed.addColorStop(1, "rgba(0,0,0,0)");
-
-    const tradingChart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: [],
-        datasets: [{
-          label: selectedCrypto + " Price",
-          data: [],
-          borderColor: "green",
-          backgroundColor: gradientGreen,
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0.2
-        }]
-      },
-      options: {
-        responsive: true,
-        animation: { duration: 800, easing: "easeInOutQuad" },
-        scales: {
-          x: {
-            type: "time",
-            time: { unit: "second", tooltipFormat: "HH:mm:ss" },
-            grid: { color: "rgba(255,255,255,0.1)" },
-            ticks: { color: "#aaa" }
-          },
-          y: {
-            grid: { color: "rgba(255,255,255,0.1)" },
-            ticks: { color: "#aaa" }
-          }
-        },
-        plugins: {
-          tooltip: { mode: "index", intersect: false }
-        },
-        interaction: { mode: "nearest", axis: "x", intersect: false }
-      }
-    });
-
-    // Update chart with simulated data for selected crypto
-    function updateChart() {
-      let min = 10000, max = 60000;
-      switch(selectedCrypto) {
-        case "BTC": min = 10000; max = 60000; break;
-        case "ETH": min = 500; max = 4000; break;
-        case "XRP": min = 0.5; max = 3; break;
-        case "LTC": min = 50; max = 400; break;
-        case "ADA": min = 0.5; max = 5; break;
-        case "DOT": min = 2; max = 40; break;
-        case "DOGE": min = 0.01; max = 1; break;
-        case "SOL": min = 10; max = 300; break;
-        case "BNB": min = 100; max = 700; break;
-      }
-      let newPrice = (Math.random() * (max - min) + min).toFixed(2);
-      if (prevChartPrice !== null) {
-        if (newPrice > prevChartPrice) {
-          tradingChart.data.datasets[0].borderColor = "green";
-          tradingChart.data.datasets[0].backgroundColor = gradientGreen;
-        } else {
-          tradingChart.data.datasets[0].borderColor = "red";
-          tradingChart.data.datasets[0].backgroundColor = gradientRed;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoTrader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <style>
+        .crypto-card:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
         }
-      }
-      tradingChart.data.labels.push(new Date());
-      tradingChart.data.datasets[0].data.push(newPrice);
-      if (tradingChart.data.labels.length > 20) {
-        tradingChart.data.labels.shift();
-        tradingChart.data.datasets[0].data.shift();
-      }
-      tradingChart.update();
-      prevChartPrice = newPrice;
-      
-      // Dynamically adjust chart container width based on data count
-      const baseWidth = window.innerWidth;
-      const widthPerData = 60; // pixels per data point
-      const desiredWidth = Math.max(baseWidth, tradingChart.data.labels.length * widthPerData);
-      document.getElementById("chartContainer").style.width = desiredWidth + "px";
-    }
-    setInterval(updateChart, 5000);
+        .loading {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3498db;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <nav class="bg-gray-800 p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <svg class="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+                <span class="ml-2 text-xl font-bold">CryptoTrader</span>
+            </div>
+            <div class="flex items-center">
+                <button id="portfolio-btn" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 mr-3">Portfolio</button>
+                <button id="dark-mode-toggle" class="p-2 rounded-full hover:bg-gray-700">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
 
-    // Update crypto card list with simulated prices and directional signals
-    const cryptoList = document.getElementById("cryptoList");
-    const cryptoSymbols = Object.keys(cryptoPrices);
-    function updateCryptoCards() {
-      let scrollPos = cryptoList.scrollLeft;
-      cryptoList.innerHTML = "";
-      cryptoSymbols.forEach(symbol => {
-        let basePrice = cryptoPrices[symbol];
-        let price = (Math.random() * (basePrice * 0.1) + basePrice).toFixed(2);
-        let change = (Math.random() - 0.5) * 10;
-        let color = change >= 0 ? "green" : "red";
-        let arrow = change >= 0 ? "▲" : "▼";
-        let card = document.createElement("div");
-        card.className = "p-3 bg-gray-800 rounded-lg text-center w-32 cursor-pointer hover:bg-gray-700 transition-colors";
-        card.innerHTML = `<p class="font-semibold">${symbol}</p>
-                          <p class="text-sm ${color === 'green' ? 'text-green-500' : 'text-red-500'}">${arrow} $${price}</p>`;
-        card.onclick = () => { selectCrypto(symbol); };
-        cryptoList.appendChild(card);
-      });
-      cryptoList.scrollLeft = scrollPos;
-    }
-    updateCryptoCards();
-    setInterval(updateCryptoCards, 5000);
+    <div class="container mx-auto p-4">
+        <!-- Market Overview Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="col-span-2">
+                <h2 class="text-2xl font-bold mb-4">Market Overview</h2>
+                <div class="bg-gray-800 rounded-lg p-4 shadow-lg">
+                    <canvas id="marketChart" height="250"></canvas>
+                </div>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold mb-4">Quick Trade</h2>
+                <div class="bg-gray-800 rounded-lg p-4 shadow-lg h-full">
+                    <div class="mb-4">
+                        <label class="block text-gray-400 mb-2">Select Coin</label>
+                        <select id="coin-select" class="w-full bg-gray-700 border border-gray-600 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="ethereum">Ethereum (ETH)</option>
+                            <option value="litecoin">Litecoin (LTC)</option>
+                            <option value="ripple">Ripple (XRP)</option>
+                            <option value="cardano">Cardano (ADA)</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-400 mb-2">Amount</label>
+                        <input type="number" id="amount" class="w-full bg-gray-700 border border-gray-600 rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0.00">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button id="buy-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            Buy
+                        </button>
+                        <button id="sell-btn" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            Sell
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    // When a crypto card is clicked, update chart for that crypto
-    function selectCrypto(symbol) {
-      selectedCrypto = symbol;
-      prevChartPrice = null;
-      tradingChart.data.datasets[0].label = symbol + " Price";
-      document.getElementById("chartTitle").innerText = symbol + " Price";
-      tradingChart.data.labels = [];
-      tradingChart.data.datasets[0].data = [];
-      tradingChart.update();
-    }
+        <!-- Top Cryptocurrencies Section -->
+        <h2 class="text-2xl font-bold mb-4">Top Cryptocurrencies</h2>
+        <div class="overflow-x-auto mb-8">
+            <table class="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+                <thead class="bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Coin</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">24h Change</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Market Cap</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="crypto-table" class="divide-y divide-gray-700">
+                    <tr>
+                        <td colspan="5" class="px-6 py-4">
+                            <div class="loading"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-    // Auto-scroll crypto cards smoothly
-    setInterval(() => {
-      cryptoList.scrollBy({ left: 2, behavior: "smooth" });
-    }, 100);
+        <!-- Portfolio Section -->
+        <div id="portfolio-section" class="hidden">
+            <h2 class="text-2xl font-bold mb-4">Your Portfolio</h2>
+            <div class="bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <h3 class="text-gray-400 text-sm mb-1">Total Balance</h3>
+                        <p class="text-2xl font-bold">$10,234.56</p>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <h3 class="text-gray-400 text-sm mb-1">24h Profit/Loss</h3>
+                        <p class="text-2xl font-bold text-green-500">+$234.56 (2.3%)</p>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <h3 class="text-gray-400 text-sm mb-1">Assets</h3>
+                        <p class="text-2xl font-bold">5</p>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <h3 class="text-gray-400 text-sm mb-1">Available Cash</h3>
+                        <p class="text-2xl font-bold">$2,500.00</p>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Your Assets</h3>
+                <div id="portfolio-assets" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Demo asset cards -->
+                    <div class="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="bg-yellow-500 rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                                <span class="font-bold">₿</span>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Bitcoin</h4>
+                                <p class="text-sm text-gray-400">0.45 BTC</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold">$8,234.56</p>
+                            <p class="text-sm text-green-500">+1.2%</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="bg-indigo-500 rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                                <span class="font-bold">Ξ</span>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Ethereum</h4>
+                                <p class="text-sm text-gray-400">2.5 ETH</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold">$1,500.00</p>
+                            <p class="text-sm text-red-500">-0.8%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    // Trade Modal Functions
-    function openTradeModal(type) {
-      document.getElementById("modalTitle").innerText = type === "buy" ? "Buy Crypto" : "Sell Crypto";
-      document.getElementById("tradeModal").dataset.type = type;
-      document.getElementById("tradeModal").classList.remove("hidden");
-    }
-    function closeTradeModal() {
-      document.getElementById("tradeModal").classList.add("hidden");
-    }
-    function submitTrade() {
-      let type = document.getElementById("tradeModal").dataset.type;
-      let amount = parseFloat(document.getElementById("txnAmount").value);
-      if (isNaN(amount) || amount <= 0) {
-        alert("Enter a valid amount");
-        return;
-      }
-      if (type === "buy" && amount > balance) {
-        alert("Insufficient balance!");
-        return;
-      }
-      balance += type === "buy" ? -amount : amount;
-      updateBalanceDisplay();
-      alert(type === "buy" ? "Purchase Successful!" : "Sale Successful!");
-      document.getElementById("txnName").value = "";
-      document.getElementById("txnPhone").value = "";
-      document.getElementById("txnAmount").value = "";
-      closeTradeModal();
-    }
-  </script>
-</body>
-</html>
+    <!-- Trade Confirmation Modal -->
+    <div id="trade-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h3 id="modal-title" class="text-xl font-bold mb-4">Confirm Trade</h3>
+            <div id="modal-content" class="mb-6">
+                <p>You are about to buy <span id="trade-amount" class="font-bold">0.5</span> <span id="trade-coin" class="font-bold">Bitcoin (BTC)</span> for approximately <span id="trade-cost" class="font-bold">$10,000</span>.</p>
+                <p class="text-sm text-gray-400 mt-2">Market price may vary slightly at execution time.</p>
+            </div>
+            <div class="flex justify-end">
+                <button id="cancel-trade" class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg mr-3">
+                    Cancel
+                </button>
+                <button id="confirm-trade" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo data for the market chart
+        const marketData = {
+            labels: Array.from({length: 30}, (_, i) => moment().subtract(29 - i, 'days').format('MMM DD')),
+            datasets: [{
+                label: 'Bitcoin (BTC)',
+                data: [
+                    42000, 41500, 42300, 43100, 43800, 43200, 42900, 43500, 44200, 45100,
+                    44800, 44300, 45200, 46100, 45800, 46500, 47200, 48100, 47600, 48200,
+                    49100, 49800, 49300, 48700, 49200, 49900, 51000, 50600, 51200, 52000
+                ],
+                borderColor: 'rgb(79, 70, 229)',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        };
+
+        // Function to initialize the market chart
+        function initMarketChart() {
+            const ctx = document.getElementById('marketChart').getContext('2d');
+            const marketChart = new Chart(ctx, {
+                type: 'line',
+                data: marketData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: 'white'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            return marketChart;
+        }
+
+        // Demo cryptocurrency data
+        const cryptoData = [
+            { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 51874.23, change24h: 2.34, marketCap: 974563245789 },
+            { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 2764.12, change24h: 1.56, marketCap: 321456789012 },
+            { id: 'ripple', name: 'Ripple', symbol: 'XRP', price: 0.5623, change24h: -0.78, marketCap: 56432178901 },
+            { id: 'cardano', name: 'Cardano', symbol: 'ADA', price: 1.21, change24h: 3.45, marketCap: 43215678901 },
+            { id: 'litecoin', name: 'Litecoin', symbol: 'LTC', price: 178.65, change24h: -1.23, marketCap: 12345678901 }
+        ];
+
+        // Function to update the cryptocurrency table
+        function updateCryptoTable() {
+            const tableBody = document.getElementById('crypto-table');
+            tableBody.innerHTML = '';
+
+            cryptoData.forEach(coin => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-750';
+                
+                // Format crypto data and create table cells
+                const changeClass = coin.change24h >= 0 ? 'text-green-500' : 'text-red-500';
+                const changeSymbol = coin.change24h >= 0 ? '+' : '';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center mr-3">
+                                <span class="font-bold">${coin.symbol.charAt(0)}</span>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium">${coin.name}</div>
+                                <div class="text-sm text-gray-400">${coin.symbol}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium">$${coin.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex ${changeClass}">
+                            ${changeSymbol}${coin.change24h.toFixed(2)}%
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        $${(coin.marketCap / 1000000000).toFixed(2)}B
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button class="trade-btn bg-indigo-600 hover:bg-indigo-700 text-xs py-1 px-3 rounded" data-coin="${coin.id}">
+                            Trade
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+
+            // Add event listeners to the trade buttons
+            document.querySelectorAll('.trade-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const coinId = this.getAttribute('data-coin');
+                    document.getElementById('coin-select').value = coinId;
+                    document.getElementById('amount').focus();
+                });
+            });
+        }
+
+        // Function to handle the trade modal
+        function setupTradeModal() {
+            const modal = document.getElementById('trade-modal');
+            const buyBtn = document.getElementById('buy-btn');
+            const sellBtn = document.getElementById('sell-btn');
+            const cancelBtn = document.getElementById('cancel-trade');
+            const confirmBtn = document.getElementById('confirm-trade');
+            
+            // Buy button click
+            buyBtn.addEventListener('click', function() {
+                const coin = document.getElementById('coin-select');
+                const amount = document.getElementById('amount').value;
+                if (!amount || isNaN(amount) || amount <= 0) {
+                    alert('Please enter a valid amount');
+                    return;
+                }
+                
+                const selectedCoin = cryptoData.find(c => c.id === coin.value);
+                document.getElementById('modal-title').textContent = 'Confirm Buy Order';
+                document.getElementById('trade-amount').textContent = amount;
+                document.getElementById('trade-coin').textContent = `${selectedCoin.name} (${selectedCoin.symbol})`;
+                document.getElementById('trade-cost').textContent = '$' + (amount * selectedCoin.price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                
+                confirmBtn.className = 'bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg';
+                modal.classList.remove('hidden');
+            });
+            
+            // Sell button click
+            sellBtn.addEventListener('click', function() {
+                const coin = document.getElementById('coin-select');
+                const amount = document.getElementById('amount').value;
+                if (!amount || isNaN(amount) || amount <= 0) {
+                    alert('Please enter a valid amount');
+                    return;
+                }
+                
+                const selectedCoin = cryptoData.find(c => c.id === coin.value);
+                document.getElementById('modal-title').textContent = 'Confirm Sell Order';
+                document.getElementById('trade-amount').textContent = amount;
+                document.getElementById('trade-coin').textContent = `${selectedCoin.name} (${selectedCoin.symbol})`;
+                document.getElementById('trade-cost').textContent = '$' + (amount * selectedCoin.price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                
+                confirmBtn.className = 'bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg';
+                modal.classList.remove('hidden');
+            });
+            
+            // Cancel button click
+            cancelBtn.addEventListener('click', function() {
+                modal.classList.add('hidden');
+            });
+            
+            // Confirm button click
+            confirmBtn.addEventListener('click', function() {
+                // Here you would implement the actual trade logic
+                alert('Trade executed successfully! (Demo only)');
+                modal.classList.add('hidden');
+                document.getElementById('amount').value = '';
+            });
+        }
+
+        // Function to toggle portfolio section
+        function setupPortfolioToggle() {
+            const portfolioBtn = document.getElementById('portfolio-btn');
+            const portfolioSection = document.getElementById('portfolio-section');
+            
+            portfolioBtn.addEventListener('click', functio
