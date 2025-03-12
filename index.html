@@ -52,6 +52,28 @@
             border-radius: 10px;
         }
 
+        .crypto-list {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px;
+            gap: 10px;
+            background: #1a1a1a;
+        }
+
+        .crypto-card {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .crypto-card span {
+            font-weight: bold;
+            display: block;
+        }
+
         .buttons {
             position: fixed;
             bottom: 10px;
@@ -117,6 +139,10 @@
 
     <div class="chart-container">
         <canvas id="tradingChart"></canvas>
+    </div>
+
+    <div class="crypto-list" id="cryptoList">
+        <!-- Crypto cards will be added dynamically -->
     </div>
 
     <div class="buttons">
@@ -189,14 +215,8 @@
                 responsive: true,
                 animation: { duration: 500 },
                 scales: {
-                    x: {
-                        grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
-                        ticks: { color: "#aaa" }
-                    },
-                    y: {
-                        grid: { display: true, color: "rgba(255, 255, 255, 0.1)" },
-                        ticks: { color: "#aaa" }
-                    }
+                    x: { grid: { display: false } },
+                    y: { grid: { display: true, color: "rgba(255, 255, 255, 0.1)" } }
                 }
             }
         });
@@ -208,19 +228,29 @@
                 chart.data.datasets[0].borderColor = newPrice > prevPrice ? "green" : "red";
             }
 
+            chart.data.labels.push(new Date().toLocaleTimeString());
+            chart.data.datasets[0].data.push(newPrice);
             if (chart.data.labels.length > 20) {
                 chart.data.labels.shift();
                 chart.data.datasets[0].data.shift();
             }
-
-            chart.data.labels.push(new Date().toLocaleTimeString());
-            chart.data.datasets[0].data.push(newPrice);
             chart.update();
 
             prevPrice = newPrice;
         }
 
         setInterval(updateChart, 5000);
+
+        const cryptoList = document.getElementById("cryptoList");
+        const cryptos = ["BTC", "ETH", "XRP", "LTC", "ADA"];
+        function updateCryptoPrices() {
+            cryptoList.innerHTML = "";
+            cryptos.forEach(crypto => {
+                let price = (Math.random() * 5000 + 1000).toFixed(2);
+                cryptoList.innerHTML += `<div class="crypto-card"><span>${crypto}</span>$${price}</div>`;
+            });
+        }
+        setInterval(updateCryptoPrices, 5000);
     </script>
 </body>
 </html>
