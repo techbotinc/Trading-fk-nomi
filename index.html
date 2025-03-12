@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading App</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@1.0.0"></script>
     <style>
         * {
             margin: 0;
@@ -36,6 +37,7 @@
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
+            height: 500px;
         }
 
         .signals-container {
@@ -65,6 +67,11 @@
             cursor: pointer;
             font-weight: bold;
             text-transform: uppercase;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.8;
         }
 
         .buy-btn {
@@ -81,6 +88,12 @@
             font-size: 1.2em;
             font-weight: bold;
         }
+
+        .timestamp {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -92,6 +105,7 @@
 
         <div class="chart-container">
             <canvas id="priceChart"></canvas>
+            <div class="timestamp" id="timestamp"></div>
         </div>
 
         <div class="signals-container" id="signalsContainer"></div>
@@ -103,30 +117,47 @@
     </div>
 
     <script>
-        // Generate random price data
+        // Generate random OHLC data
         function generatePriceData() {
             const data = [];
             let price = 100;
-            for (let i = 0; i < 50; i++) {
-                price += (Math.random() - 0.5) * 10;
-                data.push(price.toFixed(2));
+            const now = Date.now();
+            
+            for(let i = 0; i < 30; i++) {
+                const open = price;
+                const close = open + (Math.random() - 0.5) * 20;
+                const high = Math.max(open, close) + Math.random() * 10;
+                const low = Math.min(open, close) - Math.random() * 10;
+                
+                data.push({
+                    x: now + i * 60000,
+                    o: Number(open.toFixed(2)),
+                    h: Number(high.toFixed(2)),
+                    l: Number(low.toFixed(2)),
+                    c: Number(close.toFixed(2))
+                });
+                
+                price = close;
             }
             return data;
         }
 
-        // Initialize chart
+        // Initialize candlestick chart
         const ctx = document.getElementById('priceChart').getContext('2d');
         const chart = new Chart(ctx, {
-            type: 'line',
+            type: 'candlestick',
             data: {
-                labels: Array(50).fill(''),
                 datasets: [{
-                    label: 'Price',
+                    label: 'BTC/USDT',
                     data: generatePriceData(),
-                    borderColor: '#ffffff',
-                    tension: 0.4,
-                    borderWidth: 2,
-                    pointRadius: 0
+                    color: {
+                        up: '#00ff00',
+                        down: '#ff0000',
+                        unchanged: '#cccccc'
+                    },
+                    borderColor: '#000000',
+                    borderWidth: 1,
+                    wickColor: (ctx) => ctx.raw.c >= ctx.raw.o ? '#00ff00' : '#ff0000'
                 }]
             },
             options: {
@@ -137,51 +168,74 @@
                         grid: { color: '#333333' },
                         ticks: { color: '#ffffff' }
                     },
-                    x: { display: false }
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute',
+                            displayFormats: { minute: 'HH:mm' }
+                        },
+                        ticks: { color: '#ffffff' },
+                        grid: { display: false }
+                    }
                 },
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: '#1a1a1a',
+                        bodyColor: '#ffffff',
+                        titleColor: '#888888'
+                    }
                 }
             }
         });
 
-        // Generate random signals
+        // Generate market signals
         function generateSignals() {
-            const signals = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'ADA/USDT', 'DOT/USDT'];
+            const pairs = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'ADA/USDT', 'DOT/USDT'];
             const signalsContainer = document.getElementById('signalsContainer');
-            signalsContainer.innerHTML = '';
-
-            signals.forEach(pair => {
-                const change = (Math.random() - 0.5) * 10;
-                const card = document.createElement('div');
-                card.className = 'signal-card';
-                card.innerHTML = `
-                    <h3>${pair}</h3>
-                    <p>Price: $${(Math.random() * 50000).toFixed(2)}</p>
-                    <p style="color: ${change >= 0 ? '#00ff00' : '#ff0000'}">
-                        ${change.toFixed(2)}%
-                    </p>
+            
+            signalsContainer.innerHTML = pairs.map(pair => {
+                const price = (Math.random() * 50000).toFixed(2);
+                const change = (Math.random() - 0.5) * 15;
+                return `
+                    <div class="signal-card">
+                        <h3>${pair}</h3>
+                        <p>Price: $${price}</p>
+                        <p style="color: ${change >= 0 ? '#00ff00' : '#ff0000'}">
+                            ${change.toFixed(2)}% ${change >= 0 ? '↑' : '↓'}
+                        </p>
+                    </div>
                 `;
-                signalsContainer.appendChild(card);
-            });
+            }).join('');
+        }
+
+        // Update timestamp
+        function updateTimestamp() {
+            document.getElementById('timestamp').textContent = 
+                `Last Updated: ${new Date().toLocaleTimeString()}`;
         }
 
         // Update data periodically
         setInterval(() => {
-            chart.data.datasets[0].data = generatePriceData();
+            const newData = generatePriceData();
+            chart.data.datasets[0].data = newData;
             chart.update();
             generateSignals();
             document.getElementById('balance').textContent = 
                 (Math.random() * 100000).toLocaleString('en-US', {minimumFractionDigits: 2});
+            updateTimestamp();
         }, 5000);
 
         // Trade execution
         function executeTrade(type) {
-            alert(`Order to ${type} executed!\nSimulated trade - no real transaction`);
+            const amount = (Math.random() * 5).toFixed(3);
+            alert(`${type.toUpperCase()} ORDER EXECUTED!\n${amount} BTC @ $${chart.data.datasets[0].data.slice(-1)[0].c}`);
         }
 
-        // Initial signals
+        // Initial setup
         generateSignals();
+        updateTimestamp();
     </script>
 </body>
 </html>
