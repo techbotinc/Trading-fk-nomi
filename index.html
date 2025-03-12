@@ -25,6 +25,7 @@
         .chart-container {
             width: 90%;
             max-width: 600px;
+            height: 300px;
             margin: 20px auto;
             background: #1a1a1a;
             padding: 10px;
@@ -77,27 +78,36 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const ctx = document.getElementById("tradingChart").getContext("2d");
+            let labels = [];
+            let prices = [];
+            let time = 0;
+            
+            // Generate random price within a range
+            function getRandomPrice(lastPrice) {
+                let change = (Math.random() * 2 - 1) * 5; // Random change between -5 to +5
+                return Math.max(50, lastPrice + change); // Ensure price doesn't go below 50
+            }
 
-            // Example data for candlesticks (Green = Buy, Red = Sell)
-            const labels = ["10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM"];
-            const data = [
-                { open: 100, close: 110, high: 115, low: 95, color: "green" },
-                { open: 110, close: 105, high: 120, low: 100, color: "red" },
-                { open: 105, close: 115, high: 118, low: 104, color: "green" },
-                { open: 115, close: 108, high: 119, low: 107, color: "red" },
-                { open: 108, close: 112, high: 114, low: 106, color: "green" },
-            ];
+            // Initialize with random data
+            let lastPrice = 100;
+            for (let i = 0; i < 10; i++) {
+                labels.push(`T-${10 - i}`);
+                lastPrice = getRandomPrice(lastPrice);
+                prices.push(lastPrice);
+            }
 
-            new Chart(ctx, {
-                type: "bar",
+            // Create chart
+            const chart = new Chart(ctx, {
+                type: "line",
                 data: {
                     labels: labels,
                     datasets: [{
                         label: "Price Movement",
-                        data: data.map(item => item.close),
-                        backgroundColor: data.map(item => item.color),
-                        borderColor: "white",
-                        borderWidth: 2,
+                        data: prices,
+                        borderColor: "#00ff00",
+                        backgroundColor: "rgba(0, 255, 0, 0.2)",
+                        fill: true,
+                        tension: 0.2
                     }],
                 },
                 options: {
@@ -116,6 +126,19 @@
                     },
                 },
             });
+
+            // Update chart every 5 seconds
+            setInterval(() => {
+                time++;
+                labels.push(`T+${time}`);
+                labels.shift(); // Remove old data
+
+                lastPrice = getRandomPrice(lastPrice);
+                prices.push(lastPrice);
+                prices.shift(); // Remove old data
+
+                chart.update();
+            }, 5000);
         });
     </script>
 </body>
