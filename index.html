@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X Trade</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -132,8 +133,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const ctx = document.getElementById("tradingChart").getContext("2d");
-            let labels = [];
-            let prices = [];
+            
             let time = 0;
             let lastPrice = 100;
             
@@ -142,55 +142,62 @@
                 return Math.max(50, lastPrice + change);
             }
 
+            let candlestickData = [];
+
             for (let i = 0; i < 10; i++) {
-                labels.push(`T-${10 - i}`);
                 lastPrice = getRandomPrice(lastPrice);
-                prices.push(lastPrice);
+                candlestickData.push({
+                    x: new Date().getTime() - (10 - i) * 5000,
+                    o: lastPrice - Math.random() * 2,
+                    h: lastPrice + Math.random() * 5,
+                    l: lastPrice - Math.random() * 5,
+                    c: lastPrice + Math.random() * 2
+                });
             }
 
             const chart = new Chart(ctx, {
                 type: "candlestick",
                 data: {
-                    labels: labels,
                     datasets: [{
                         label: "Price Movement",
-                        data: prices.map((price, index) => ({
-                            x: labels[index],
-                            o: price - Math.random() * 2,
-                            h: price + Math.random() * 5,
-                            l: price - Math.random() * 5,
-                            c: price + Math.random() * 2
-                        })),
-                        borderColor: prices.map((price, index) =>
-                            price >= prices[index - 1] ? "green" : "red"
-                        ),
-                        backgroundColor: prices.map((price, index) =>
-                            price >= prices[index - 1] ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 0, 0, 0.5)"
-                        ),
-                        fill: true,
-                        tension: 0.2
+                        data: candlestickData,
+                        borderColor: "white",
+                        color: {
+                            up: "green",
+                            down: "red",
+                            unchanged: "gray"
+                        }
                     }],
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { grid: { color: "gray" }, ticks: { color: "white" } },
-                        x: { grid: { color: "gray" }, ticks: { color: "white" } },
+                        x: {
+                            type: 'time',
+                            time: { unit: 'second' },
+                            grid: { color: "gray" },
+                            ticks: { color: "white" }
+                        },
+                        y: { grid: { color: "gray" }, ticks: { color: "white" } }
                     },
                 },
             });
 
             function updateChart() {
                 time++;
-                labels.push(`T+${time}`);
-                labels.shift();
-
                 lastPrice = getRandomPrice(lastPrice);
-                prices.push(lastPrice);
-                prices.shift();
 
-                chart.data.datasets[0].borderColor = lastPrice >= prices[prices.length - 2] ? "green" : "red";
+                candlestickData.push({
+                    x: new Date().getTime(),
+                    o: lastPrice - Math.random() * 2,
+                    h: lastPrice + Math.random() * 5,
+                    l: lastPrice - Math.random() * 5,
+                    c: lastPrice + Math.random() * 2
+                });
+
+                if (candlestickData.length > 10) candlestickData.shift();
+
                 chart.update();
             }
 
