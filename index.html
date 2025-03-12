@@ -8,11 +8,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Time adapter for Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
     /* Hide scrollbar for horizontal crypto list */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    /* Optional smooth scroll */
     .smooth-scroll { scroll-behavior: smooth; }
   </style>
 </head>
@@ -137,7 +138,7 @@
       }
     });
 
-    // Update chart with simulated data
+    // Update chart with simulated data for selected crypto
     function updateChart() {
       let min = 10000, max = 60000;
       switch(selectedCrypto) {
@@ -179,16 +180,14 @@
       cryptoList.innerHTML = "";
       cryptoSymbols.forEach(symbol => {
         let basePrice = cryptoPrices[symbol];
-        // Simulate a price variation
         let price = (Math.random() * (basePrice * 0.1) + basePrice).toFixed(2);
         let change = (Math.random() - 0.5) * 10;
         let color = change >= 0 ? "green" : "red";
         let arrow = change >= 0 ? "▲" : "▼";
-        let textClass = change >= 0 ? "text-green-500" : "text-red-500";
         let card = document.createElement("div");
         card.className = "p-3 bg-gray-800 rounded-lg text-center w-32 cursor-pointer hover:bg-gray-700 transition-colors";
         card.innerHTML = `<p class="font-semibold">${symbol}</p>
-                          <p class="text-sm ${textClass}">${arrow} $${price}</p>`;
+                          <p class="text-sm text-${color}-500">${arrow} $${price}</p>`;
         card.onclick = () => { selectCrypto(symbol); };
         cryptoList.appendChild(card);
       });
@@ -235,7 +234,6 @@
       balance += type === "buy" ? -amount : amount;
       updateBalanceDisplay();
       alert(type === "buy" ? "Purchase Successful!" : "Sale Successful!");
-      // Clear modal fields
       document.getElementById("txnName").value = "";
       document.getElementById("txnPhone").value = "";
       document.getElementById("txnAmount").value = "";
