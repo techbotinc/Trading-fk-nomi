@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>X Trade - Modern Trading App</title>
+  <title>X Trade - Mobile Trading App</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
@@ -19,25 +19,25 @@
     }
   </style>
 </head>
-<body class="bg-gray-900 text-white overflow-x-hidden">
+<body class="bg-gray-900 text-white">
   <!-- Header -->
-  <header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center">
+  <header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center sticky top-0 z-50">
     <div class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold text-xl">X</div>
     <div id="balance" class="font-semibold text-lg">Balance: $10,000</div>
   </header>
 
   <!-- Chart Container -->
-  <div class="max-w-xl mx-auto my-6 bg-gray-800 p-4 rounded-lg">
+  <div class="max-w-xl mx-auto my-4 bg-gray-800 p-4 rounded-lg shadow-lg">
     <canvas id="tradingChart"></canvas>
   </div>
 
   <!-- Crypto Cards (Auto-scrolling) -->
-  <div id="cryptoList" class="crypto-list no-scrollbar flex space-x-4 px-4 py-2 bg-gray-800 rounded-lg mx-4"></div>
+  <div id="cryptoList" class="no-scrollbar flex space-x-4 px-4 py-2 bg-gray-800 rounded-lg mx-4 overflow-x-auto"></div>
 
   <!-- Fixed Buy/Sell Buttons -->
   <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
-    <button onclick="openDialog('buy')" class="buy-btn bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded">BUY</button>
-    <button onclick="openDialog('sell')" class="sell-btn bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded">SELL</button>
+    <button onclick="openDialog('buy')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded">BUY</button>
+    <button onclick="openDialog('sell')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded">SELL</button>
   </div>
 
   <!-- Transaction Modal -->
@@ -59,17 +59,16 @@
 
   <!-- JavaScript -->
   <script>
-    // Initial balance and holdings for simulation
+    // Initial balance and simulation variables
     let balance = 10000;
-    let prevPrice = null; // For chart comparison
-
-    // Update balance display
+    let prevPrice = null;
+    
     function updateBalanceDisplay() {
       document.getElementById("balance").innerText = `Balance: $${balance.toFixed(2)}`;
     }
     updateBalanceDisplay();
 
-    // Transaction processing (simulate buy/sell affecting balance)
+    // Process transaction and update balance accordingly
     function processTransaction() {
       const amount = parseFloat(document.getElementById("txnAmount").value);
       const txnType = document.getElementById("transactionType").innerText.toLowerCase();
@@ -84,14 +83,13 @@
       }
       updateBalanceDisplay();
       alert(`${txnType.includes("buy") ? "Purchase" : "Sale"} successful!`);
-      // Reset form fields
       document.getElementById("txnName").value = "";
       document.getElementById("txnPhone").value = "";
       document.getElementById("txnAmount").value = "";
       closeDialog();
     }
 
-    // Modal control functions
+    // Modal controls
     function openDialog(type) {
       document.getElementById("transactionType").innerText = type === "buy" ? "Buy Crypto" : "Sell Crypto";
       document.getElementById("transactionDialog").classList.remove("hidden");
@@ -100,7 +98,7 @@
       document.getElementById("transactionDialog").classList.add("hidden");
     }
 
-    // Chart.js setup for BTC Price chart
+    // Chart.js: Real-time updating BTC price chart
     const ctx = document.getElementById("tradingChart").getContext("2d");
     const chart = new Chart(ctx, {
       type: "line",
@@ -152,7 +150,10 @@
         let price = (Math.random() * 5000 + 1000).toFixed(2);
         let color = Math.random() > 0.5 ? "green" : "red";
         let arrow = color === "green" ? "▲" : "▼";
-        cryptoList.innerHTML += `<div class="crypto-card"><span>${symbol}</span>$${price} <span class="font-bold" style="color:${color}">${arrow}</span></div>`;
+        cryptoList.innerHTML += `<div class="crypto-card">
+          <span>${symbol}</span>
+          $${price} <span class="font-bold" style="color:${color}">${arrow}</span>
+        </div>`;
       });
     }
     updateCryptoCards();
