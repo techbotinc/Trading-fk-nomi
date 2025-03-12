@@ -72,28 +72,6 @@
             border-radius: 10px;
         }
 
-        .crypto-list {
-            display: flex;
-            white-space: nowrap;
-            overflow: hidden;
-            padding: 10px;
-            background: #1a1a1a;
-            margin: 10px;
-            border-radius: 5px;
-            position: relative;
-        }
-
-        .crypto-list .crypto-card {
-            background: #222;
-            padding: 15px;
-            border-radius: 5px;
-            margin-right: 10px;
-            font-size: 14px;
-            min-width: 120px;
-            text-align: center;
-            transition: transform 0.5s ease;
-        }
-
         .buttons {
             position: fixed;
             bottom: 10px;
@@ -117,16 +95,6 @@
 
         .up { color: green; font-weight: bold; }
         .down { color: red; font-weight: bold; }
-
-        @media (max-width: 768px) {
-            .buttons {
-                bottom: 15px;
-            }
-            .buy-btn, .sell-btn {
-                padding: 12px 25px;
-                font-size: 16px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -144,8 +112,6 @@
     <div class="chart-container">
         <canvas id="tradingChart"></canvas>
     </div>
-
-    <div class="crypto-list" id="cryptoCards"></div>
 
     <div class="buttons">
         <button class="buy-btn">BUY</button>
@@ -187,20 +153,6 @@
             previousPrices[id] = newPrice;
         }
 
-        function generateCryptoCards() {
-            const cryptos = ["DOGE", "SOL", "XRP", "ADA", "DOT", "SHIB", "MATIC", "LTC", "AVAX"];
-            const container = document.getElementById("cryptoCards");
-            container.innerHTML = cryptos.map(symbol => {
-                let price = (Math.random() * 500 + 10).toFixed(2);
-                let color = Math.random() > 0.5 ? "green" : "red";
-                return `<div class="crypto-card" style="color:${color}">${symbol}: $${price} <span>${color === "green" ? "▲" : "▼"}</span></div>`;
-            }).join("");
-        }
-
-        function autoScrollCards() {
-            document.getElementById("cryptoCards").scrollBy({ left: 2, behavior: "smooth" });
-        }
-
         // Chart.js setup
         const ctx = document.getElementById("tradingChart").getContext("2d");
         const chart = new Chart(ctx, {
@@ -212,9 +164,31 @@
                     borderColor: "green",
                     backgroundColor: "rgba(0, 255, 0, 0.2)",
                     data: [],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.1 
                 }]
             },
-            options: { responsive: true, animation: { duration: 500 } }
+            options: {
+                responsive: true,
+                animation: { duration: 500 },
+                scales: {
+                    x: {
+                        grid: {
+                            display: true,
+                            color: "rgba(255, 255, 255, 0.1)"
+                        },
+                        ticks: { color: "#aaa" }
+                    },
+                    y: {
+                        grid: {
+                            display: true,
+                            color: "rgba(255, 255, 255, 0.1)"
+                        },
+                        ticks: { color: "#aaa" }
+                    }
+                }
+            }
         });
 
         function updateChart() {
@@ -231,9 +205,6 @@
         setInterval(updateChart, 5000);
         fetchCryptoPrices();
         setInterval(fetchCryptoPrices, 5000);
-        generateCryptoCards();
-        setInterval(generateCryptoCards, 5000);
-        setInterval(autoScrollCards, 100);
     </script>
 </body>
 </html>
