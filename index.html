@@ -3,239 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading App</title>
+    <title>X Trade</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@1.0.0"></script>
     <style>
-        * {
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            text-align: center;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
         }
 
-        body {
-            background-color: #000000;
-            color: #ffffff;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        header {
             padding: 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 2px solid #fff;
         }
 
         .chart-container {
-            background-color: #1a1a1a;
-            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto;
+            background: #1a1a1a;
+            padding: 10px;
             border-radius: 10px;
-            margin-bottom: 20px;
-            height: 500px;
         }
 
-        .signals-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .signal-card {
-            background-color: #1a1a1a;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #ffffff;
-        }
-
-        .trade-buttons {
+        .buttons {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            gap: 10px;
-            justify-content: center;
+            gap: 20px;
         }
 
-        button {
-            padding: 12px 30px;
+        .buy-btn, .sell-btn {
+            padding: 15px 30px;
+            font-size: 18px;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            text-transform: uppercase;
-            transition: opacity 0.3s;
-        }
-
-        button:hover {
-            opacity: 0.8;
+            border-radius: 5px;
         }
 
         .buy-btn {
-            background-color: #ffffff;
-            color: #000000;
+            background: green;
+            color: white;
         }
 
         .sell-btn {
-            background-color: #333333;
-            color: #ffffff;
-        }
-
-        .balance {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        .timestamp {
-            color: #888;
-            font-size: 0.9em;
-            margin-top: 10px;
+            background: red;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>TRADING APP</h1>
-            <div class="balance">Balance: $<span id="balance">50,000.00</span></div>
-        </div>
+    <header>
+        <h1>X Trade</h1>
+    </header>
 
-        <div class="chart-container">
-            <canvas id="priceChart"></canvas>
-            <div class="timestamp" id="timestamp"></div>
-        </div>
+    <div class="chart-container">
+        <canvas id="tradingChart"></canvas>
+    </div>
 
-        <div class="signals-container" id="signalsContainer"></div>
-
-        <div class="trade-buttons">
-            <button class="buy-btn" onclick="executeTrade('buy')">BUY</button>
-            <button class="sell-btn" onclick="executeTrade('sell')">SELL</button>
-        </div>
+    <div class="buttons">
+        <button class="buy-btn">BUY</button>
+        <button class="sell-btn">SELL</button>
     </div>
 
     <script>
-        // Generate random OHLC data
-        function generatePriceData() {
-            const data = [];
-            let price = 100;
-            const now = Date.now();
-            
-            for(let i = 0; i < 30; i++) {
-                const open = price;
-                const close = open + (Math.random() - 0.5) * 20;
-                const high = Math.max(open, close) + Math.random() * 10;
-                const low = Math.min(open, close) - Math.random() * 10;
-                
-                data.push({
-                    x: now + i * 60000,
-                    o: Number(open.toFixed(2)),
-                    h: Number(high.toFixed(2)),
-                    l: Number(low.toFixed(2)),
-                    c: Number(close.toFixed(2))
-                });
-                
-                price = close;
-            }
-            return data;
-        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById("tradingChart").getContext("2d");
 
-        // Initialize candlestick chart
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'candlestick',
-            data: {
-                datasets: [{
-                    label: 'BTC/USDT',
-                    data: generatePriceData(),
-                    color: {
-                        up: '#00ff00',
-                        down: '#ff0000',
-                        unchanged: '#cccccc'
-                    },
-                    borderColor: '#000000',
-                    borderWidth: 1,
-                    wickColor: (ctx) => ctx.raw.c >= ctx.raw.o ? '#00ff00' : '#ff0000'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        grid: { color: '#333333' },
-                        ticks: { color: '#ffffff' }
-                    },
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'minute',
-                            displayFormats: { minute: 'HH:mm' }
-                        },
-                        ticks: { color: '#ffffff' },
-                        grid: { display: false }
-                    }
+            // Example data for candlesticks (Green = Buy, Red = Sell)
+            const labels = ["10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM", "4 PM"];
+            const data = [
+                { open: 100, close: 110, high: 115, low: 95, color: "green" },
+                { open: 110, close: 105, high: 120, low: 100, color: "red" },
+                { open: 105, close: 115, high: 118, low: 104, color: "green" },
+                { open: 115, close: 108, high: 119, low: 107, color: "red" },
+                { open: 108, close: 112, high: 114, low: 106, color: "green" },
+            ];
+
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Price Movement",
+                        data: data.map(item => item.close),
+                        backgroundColor: data.map(item => item.color),
+                        borderColor: "white",
+                        borderWidth: 2,
+                    }],
                 },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        enabled: true,
-                        backgroundColor: '#1a1a1a',
-                        bodyColor: '#ffffff',
-                        titleColor: '#888888'
-                    }
-                }
-            }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: "gray" },
+                            ticks: { color: "white" },
+                        },
+                        x: {
+                            grid: { color: "gray" },
+                            ticks: { color: "white" },
+                        },
+                    },
+                },
+            });
         });
-
-        // Generate market signals
-        function generateSignals() {
-            const pairs = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'ADA/USDT', 'DOT/USDT'];
-            const signalsContainer = document.getElementById('signalsContainer');
-            
-            signalsContainer.innerHTML = pairs.map(pair => {
-                const price = (Math.random() * 50000).toFixed(2);
-                const change = (Math.random() - 0.5) * 15;
-                return `
-                    <div class="signal-card">
-                        <h3>${pair}</h3>
-                        <p>Price: $${price}</p>
-                        <p style="color: ${change >= 0 ? '#00ff00' : '#ff0000'}">
-                            ${change.toFixed(2)}% ${change >= 0 ? '↑' : '↓'}
-                        </p>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Update timestamp
-        function updateTimestamp() {
-            document.getElementById('timestamp').textContent = 
-                `Last Updated: ${new Date().toLocaleTimeString()}`;
-        }
-
-        // Update data periodically
-        setInterval(() => {
-            const newData = generatePriceData();
-            chart.data.datasets[0].data = newData;
-            chart.update();
-            generateSignals();
-            document.getElementById('balance').textContent = 
-                (Math.random() * 100000).toLocaleString('en-US', {minimumFractionDigits: 2});
-            updateTimestamp();
-        }, 5000);
-
-        // Trade execution
-        function executeTrade(type) {
-            const amount = (Math.random() * 5).toFixed(3);
-            alert(`${type.toUpperCase()} ORDER EXECUTED!\n${amount} BTC @ $${chart.data.datasets[0].data.slice(-1)[0].c}`);
-        }
-
-        // Initial setup
-        generateSignals();
-        updateTimestamp();
     </script>
 </body>
 </html>
