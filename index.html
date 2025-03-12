@@ -153,15 +153,14 @@
     </div>
 
     <script>
-        let balance = 10000; // Initial balance
-        let holdings = { btc: 0.2, eth: 1.5, bnb: 3 }; // Example crypto holdings
+        let balance = 10000;
+        let holdings = { btc: 0.2, eth: 1.5, bnb: 3 };
         let previousPrices = { btc: null, eth: null, bnb: null };
 
         function updateBalance() {
             let newBalance = holdings.btc * previousPrices.btc +
                              holdings.eth * previousPrices.eth +
                              holdings.bnb * previousPrices.bnb;
-
             document.getElementById("balance").innerText = `Balance: $${newBalance.toFixed(2)}`;
         }
 
@@ -202,6 +201,34 @@
             document.getElementById("cryptoCards").scrollBy({ left: 2, behavior: "smooth" });
         }
 
+        // Chart.js setup
+        const ctx = document.getElementById("tradingChart").getContext("2d");
+        const chart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "BTC Price",
+                    borderColor: "green",
+                    backgroundColor: "rgba(0, 255, 0, 0.2)",
+                    data: [],
+                }]
+            },
+            options: { responsive: true, animation: { duration: 500 } }
+        });
+
+        function updateChart() {
+            let newPrice = (Math.random() * 50000 + 10000).toFixed(2);
+            if (chart.data.labels.length > 20) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+            chart.data.labels.push(new Date().toLocaleTimeString());
+            chart.data.datasets[0].data.push(newPrice);
+            chart.update();
+        }
+
+        setInterval(updateChart, 5000);
         fetchCryptoPrices();
         setInterval(fetchCryptoPrices, 5000);
         generateCryptoCards();
