@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #000;
+            background-color: #121212;
             color: #fff;
             text-align: center;
             margin: 0;
@@ -16,10 +16,41 @@
         }
 
         header {
-            padding: 20px;
-            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 2px solid #333;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background-color: #fcd535;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-weight: bold;
-            border-bottom: 2px solid #fff;
+            font-size: 20px;
+            color: black;
+            margin-right: 10px;
+        }
+
+        .market-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            background-color: #1a1a1a;
+            border-bottom: 2px solid #333;
+        }
+
+        .crypto {
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #222;
+            font-size: 14px;
         }
 
         .chart-container {
@@ -63,8 +94,15 @@
 </head>
 <body>
     <header>
+        <div class="logo">X</div>
         <h1>X Trade</h1>
     </header>
+
+    <div class="market-container">
+        <div class="crypto" id="btc">BTC: Loading...</div>
+        <div class="crypto" id="eth">ETH: Loading...</div>
+        <div class="crypto" id="bnb">BNB: Loading...</div>
+    </div>
 
     <div class="chart-container">
         <canvas id="tradingChart"></canvas>
@@ -81,14 +119,12 @@
             let labels = [];
             let prices = [];
             let time = 0;
-            
-            // Generate random price within a range
+
             function getRandomPrice(lastPrice) {
                 let change = (Math.random() * 2 - 1) * 5; // Random change between -5 to +5
-                return Math.max(50, lastPrice + change); // Ensure price doesn't go below 50
+                return Math.max(50, lastPrice + change);
             }
 
-            // Initialize with random data
             let lastPrice = 100;
             for (let i = 0; i < 10; i++) {
                 labels.push(`T-${10 - i}`);
@@ -96,7 +132,6 @@
                 prices.push(lastPrice);
             }
 
-            // Create chart
             const chart = new Chart(ctx, {
                 type: "line",
                 data: {
@@ -104,8 +139,8 @@
                     datasets: [{
                         label: "Price Movement",
                         data: prices,
-                        borderColor: "#00ff00",
-                        backgroundColor: "rgba(0, 255, 0, 0.2)",
+                        borderColor: "#fcd535",
+                        backgroundColor: "rgba(252, 213, 53, 0.2)",
                         fill: true,
                         tension: 0.2
                     }],
@@ -114,31 +149,35 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: false,
-                            grid: { color: "gray" },
-                            ticks: { color: "white" },
-                        },
-                        x: {
-                            grid: { color: "gray" },
-                            ticks: { color: "white" },
-                        },
+                        y: { grid: { color: "gray" }, ticks: { color: "white" } },
+                        x: { grid: { color: "gray" }, ticks: { color: "white" } },
                     },
                 },
             });
 
-            // Update chart every 5 seconds
             setInterval(() => {
                 time++;
                 labels.push(`T+${time}`);
-                labels.shift(); // Remove old data
-
+                labels.shift();
                 lastPrice = getRandomPrice(lastPrice);
                 prices.push(lastPrice);
-                prices.shift(); // Remove old data
-
+                prices.shift();
                 chart.update();
             }, 5000);
+
+            function fetchCryptoPrices() {
+                fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin&vs_currencies=usd")
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById("btc").textContent = `BTC: $${data.bitcoin.usd}`;
+                        document.getElementById("eth").textContent = `ETH: $${data.ethereum.usd}`;
+                        document.getElementById("bnb").textContent = `BNB: $${data.binancecoin.usd}`;
+                    })
+                    .catch(error => console.log("Error fetching prices:", error));
+            }
+
+            fetchCryptoPrices();
+            setInterval(fetchCryptoPrices, 5000);
         });
     </script>
 </body>
