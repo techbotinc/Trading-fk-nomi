@@ -14,8 +14,8 @@
         }
 
         body {
-            background: linear-gradient(135deg, #1e1e2f 0%, #27293d 100%);
-            color: #e0e0e0;
+            background: #1a1a2e;
+            color: #ffffff;
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -23,66 +23,67 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 3fr 1fr;
+            gap: 20px;
         }
 
-        .header {
-            background: rgba(30, 30, 47, 0.9);
-            border-radius: 15px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .sidebar {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .pair-selector {
+        .main-content {
             display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-
-        .pair-btn {
-            padding: 8px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .pair-btn.active, .pair-btn:hover {
-            background: linear-gradient(45deg, #ff3366, #e94560);
-            color: #fff;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .chart-container {
-            background: rgba(30, 30, 47, 0.9);
-            border-radius: 15px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            height: 400px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            height: 300px;
         }
 
-        .signals-container {
-            background: rgba(30, 30, 47, 0.9);
-            border-radius: 15px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            max-height: 250px;
+        .signals-panel {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 300px;
             overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .order-panel {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .pair-item {
+            padding: 10px;
+            border-bottom: 1px solid #2a2a4e;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .pair-item:hover {
+            background: #2a2a4e;
+        }
+
+        .pair-item.active {
+            background: #0f3460;
         }
 
         .signal-item {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 10px;
             margin-bottom: 10px;
             animation: slideIn 0.3s ease;
@@ -96,18 +97,10 @@
             border-left: 4px solid #ff3366;
         }
 
-        .order-container {
-            background: rgba(30, 30, 47, 0.9);
-            border-radius: 15px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
         .order-form {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
         }
 
         .input-group {
@@ -119,57 +112,57 @@
         select, input {
             padding: 10px;
             border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #e0e0e0;
-            transition: all 0.3s ease;
+            border-radius: 5px;
+            background: #2a2a4e;
+            color: #ffffff;
+            transition: background 0.3s;
         }
 
         select:focus, input:focus {
             outline: none;
-            background: rgba(255, 255, 255, 0.15);
+            background: #3a3a5e;
         }
 
-        .order-btn {
+        button {
             padding: 12px;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             background: linear-gradient(45deg, #ff3366, #e94560);
             color: #fff;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
 
-        .order-btn:hover {
+        button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
         }
 
         h2 {
             font-size: 1.2rem;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #e94560;
         }
 
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 768px) {
             .container {
+                grid-template-columns: 1fr;
                 padding: 10px;
             }
             .chart-container {
-                height: 250px;
+                height: 300px;
             }
-            .signals-container {
+            .signals-panel {
                 max-height: 200px;
             }
         }
@@ -177,34 +170,29 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="pair-selector" id="pairSelector">
-                <div class="pair-btn active" data-pair="BTC/USD">BTC/USD <span class="price">56894.32</span></div>
-                <div class="pair-btn" data-pair="ETH/USD">ETH/USD <span class="price">2345.67</span></div>
-                <div class="pair-btn" data-pair="XRP/USD">XRP/USD <span class="price">0.5432</span></div>
-                <div class="pair-btn" data-pair="LTC/USD">LTC/USD <span class="price">89.45</span></div>
+        <!-- Sidebar with Trading Pairs -->
+        <div class="sidebar">
+            <h2>Trading Pairs</h2>
+            <div id="tradingPairs"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+            <div class="signals-panel">
+                <h2>Trading Signals</h2>
+                <div id="signalsList"></div>
             </div>
         </div>
 
-        <div class="chart-container">
-            <canvas id="priceChart"></canvas>
-        </div>
-
-        <div class="signals-container">
-            <h2>Trading Signals</h2>
-            <div id="signalsList"></div>
-        </div>
-
-        <div class="order-container">
+        <!-- Order Panel -->
+        <div class="order-panel">
             <h2>Place Order</h2>
             <div class="order-form">
                 <div class="input-group">
-                    <select id="orderPair">
-                        <option value="BTC/USD">BTC/USD</option>
-                        <option value="ETH/USD">ETH/USD</option>
-                        <option value="XRP/USD">XRP/USD</option>
-                        <option value="LTC/USD">LTC/USD</option>
-                    </select>
+                    <select id="orderPair"></select>
                 </div>
                 <div class="input-group">
                     <input type="number" id="orderAmount" placeholder="Amount">
@@ -212,82 +200,113 @@
                 <div class="input-group">
                     <input type="number" id="orderPrice" placeholder="Price">
                 </div>
-                <button class="order-btn" onclick="placeOrder()">Place Order</button>
+                <button onclick="placeOrder()">Place Order</button>
             </div>
         </div>
     </div>
 
     <script>
-        const pairButtons = document.querySelectorAll('.pair-btn');
-        const orderPair = document.getElementById('orderPair');
-        const signalsList = document.getElementById('signalsList');
-        let currentPair = 'BTC/USD';
+        const tradingPairs = [
+            { name: 'BTC/USD', price: 56894.32 },
+            { name: 'ETH/USD', price: 2345.67 },
+            { name: 'XRP/USD', price: 0.5432 },
+            { name: 'LTC/USD', price: 89.45 }
+        ];
+        let currentPair = tradingPairs[0];
         let chart;
 
-        // Chart initialization
+        // DOM Elements
+        const pairList = document.getElementById('tradingPairs');
+        const orderPair = document.getElementById('orderPair');
+        const signalsList = document.getElementById('signalsList');
+
+        // Populate trading pairs
+        tradingPairs.forEach(pair => {
+            const pairItem = document.createElement('div');
+            pairItem.classList.add('pair-item');
+            pairItem.innerHTML = `${pair.name} <span class="price">${pair.price.toFixed(2)}</span>`;
+            pairItem.addEventListener('click', () => {
+                document.querySelectorAll('.pair-item').forEach(item => item.classList.remove('active'));
+                pairItem.classList.add('active');
+                currentPair = pair;
+                orderPair.value = pair.name;
+                resetChart();
+            });
+            pairList.appendChild(pairItem);
+
+            const option = document.createElement('option');
+            option.value = pair.name;
+            option.textContent = pair.name;
+            orderPair.appendChild(option);
+        });
+
+        // Chart Initialization
         const ctx = document.getElementById('priceChart').getContext('2d');
         const initialData = Array(20).fill(0).map((_, i) => ({
-            x: new Date().getTime() - (20 - i) * 1000,
-            y: 56894.32 + (Math.random() - 0.5) * 1000
+            x: new Date().getTime() - (20 - i) * 2000,
+            y: currentPair.price + (Math.random() - 0.5) * 100
         }));
 
         chart = new Chart(ctx, {
             type: 'line',
             data: {
-                datasets: [{
-                    label: 'Price',
-                    data: initialData,
-                    borderColor: '#e94560',
-                    backgroundColor: 'rgba(233, 69, 96, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }, {
-                    label: 'Signals',
-                    data: [],
-                    type: 'scatter', // Explicitly set as scatter
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    pointBackgroundColor: [],
-                    showLine: false
-                }]
+                datasets: [
+                    {
+                        label: 'Price',
+                        data: initialData,
+                        borderColor: '#e94560',
+                        backgroundColor: 'rgba(233, 69, 96, 0.1)',
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Buy Signals',
+                        data: [],
+                        borderWidth: 0,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#00cc99',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        showLine: false
+                    },
+                    {
+                        label: 'Sell Signals',
+                        data: [],
+                        borderWidth: 0,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#ff3366',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        showLine: false
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
                     x: { type: 'time', time: { unit: 'second' }, display: false },
-                    y: { ticks: { color: '#e0e0e0' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                    y: { beginAtZero: false, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
                 },
-                plugins: {
-                    legend: { display: false }
-                }
+                plugins: { legend: { display: false } }
             }
         });
 
-        // Pair selection
-        pairButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                pairButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentPair = btn.dataset.pair;
-                orderPair.value = currentPair;
-                resetChart();
-            });
-        });
-
-        // Price updates
+        // Update Prices
         function updatePrices() {
-            pairButtons.forEach(btn => {
-                const priceSpan = btn.querySelector('.price');
-                let price = parseFloat(priceSpan.textContent);
-                const change = (Math.random() - 0.5) * 100;
-                price += change;
-                priceSpan.textContent = price.toFixed(2);
+            tradingPairs.forEach(pair => {
+                pair.price += (Math.random() - 0.5) * 100;
+                const pairItem = pairList.querySelector(`[data-pair="${pair.name}"]`) || 
+                    Array.from(pairList.children).find(item => item.textContent.includes(pair.name));
+                if (pairItem) pairItem.querySelector('.price').textContent = pair.price.toFixed(2);
 
-                if (btn.dataset.pair === currentPair) {
+                if (pair === currentPair) {
                     chart.data.datasets[0].data.push({
                         x: new Date().getTime(),
-                        y: price
+                        y: pair.price
                     });
                     if (chart.data.datasets[0].data.length > 20) {
                         chart.data.datasets[0].data.shift();
@@ -297,17 +316,15 @@
             });
         }
 
-        // Generate random signal
+        // Generate Random Signal
         function generateRandomSignal() {
-            const directions = ['BUY', 'SELL'];
-            const direction = directions[Math.floor(Math.random() * 2)];
-            const currentPrice = parseFloat(document.querySelector(`[data-pair="${currentPair}"] .price`).textContent);
-            const entryPrice = currentPrice + (Math.random() * 100 - 50);
+            const direction = Math.random() < 0.5 ? 'BUY' : 'SELL';
+            const entryPrice = currentPair.price + (Math.random() * 100 - 50);
             const stopLoss = direction === 'BUY' ? entryPrice * 0.95 : entryPrice * 1.05;
             const takeProfit = direction === 'BUY' ? entryPrice * 1.05 : entryPrice * 0.95;
 
             const signal = {
-                pair: currentPair,
+                pair: currentPair.name,
                 direction,
                 entryPrice: entryPrice.toFixed(2),
                 stopLoss: stopLoss.toFixed(2),
@@ -315,25 +332,21 @@
                 time: new Date().toLocaleTimeString()
             };
 
-            // Add signal to chart
-            const signalData = {
+            // Add to chart
+            const signalDataset = direction === 'BUY' ? chart.data.datasets[1] : chart.data.datasets[2];
+            signalDataset.data.push({
                 x: new Date().getTime(),
                 y: parseFloat(signal.entryPrice)
-            };
-            chart.data.datasets[1].data.push(signalData);
-            chart.data.datasets[1].pointBackgroundColor.push(direction === 'BUY' ? '#00cc99' : '#ff3366');
-            
-            // Limit signals to 5
-            if (chart.data.datasets[1].data.length > 5) {
-                chart.data.datasets[1].data.shift();
-                chart.data.datasets[1].pointBackgroundColor.shift();
+            });
+            if (signalDataset.data.length > 5) {
+                signalDataset.data.shift();
             }
             chart.update();
 
             return signal;
         }
 
-        // Display signal in list
+        // Display Signal
         function displaySignal(signal) {
             const signalElement = document.createElement('div');
             signalElement.classList.add('signal-item', `signal-${signal.direction.toLowerCase()}`);
@@ -350,7 +363,7 @@
             }
         }
 
-        // Place order
+        // Place Order
         function placeOrder() {
             const pair = orderPair.value;
             const amount = document.getElementById('orderAmount').value;
@@ -364,15 +377,14 @@
             }
         }
 
-        // Reset chart
+        // Reset Chart
         function resetChart() {
-            const initialPrice = parseFloat(document.querySelector(`[data-pair="${currentPair}"] .price`).textContent);
             chart.data.datasets[0].data = Array(20).fill(0).map((_, i) => ({
-                x: new Date().getTime() - (20 - i) * 1000,
-                y: initialPrice + (Math.random() - 0.5) * 1000
+                x: new Date().getTime() - (20 - i) * 2000,
+                y: currentPair.price + (Math.random() - 0.5) * 100
             }));
             chart.data.datasets[1].data = [];
-            chart.data.datasets[1].pointBackgroundColor = [];
+            chart.data.datasets[2].data = [];
             chart.update();
         }
 
@@ -383,8 +395,9 @@
             displaySignal(signal);
         }, 5000);
 
-        // Initial setup
-        pairButtons[0].classList.add('active');
+        // Initial Setup
+        pairList.children[0].classList.add('active');
+        orderPair.value = tradingPairs[0].name;
         displaySignal(generateRandomSignal());
     </script>
 </body>
