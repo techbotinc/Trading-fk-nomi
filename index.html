@@ -1,245 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X Trade</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #fff;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: #1a1a1a;
-            border-bottom: 2px solid #333;
-        }
-
-        .logo {
-            width: 40px;
-            height: 40px;
-            background-color: white;
-            color: black;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        .balance {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .chart-container {
-            width: 100%;
-            max-width: 600px;
-            height: 300px;
-            margin: 20px auto;
-            background: #1a1a1a;
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        .crypto-list {
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding: 10px;
-            gap: 10px;
-            background: #1a1a1a;
-        }
-
-        .crypto-card {
-            background: #222;
-            padding: 10px;
-            border-radius: 5px;
-            min-width: 120px;
-            text-align: center;
-        }
-
-        .crypto-card span {
-            font-weight: bold;
-            display: block;
-        }
-
-        .buttons {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-        }
-
-        .buy-btn, .sell-btn {
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 5px;
-        }
-
-        .buy-btn { background: green; color: white; }
-        .sell-btn { background: red; color: white; }
-
-        .dialog {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #222;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 350px;
-        }
-
-        .dialog input, .dialog select, .dialog button {
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
-            font-size: 16px;
-        }
-
-        .dialog button {
-            background: green;
-            color: white;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close {
-            text-align: right;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 18px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>X Trade - Modern Trading App</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Hide scrollbar for horizontal crypto list */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 </head>
-<body>
-    <header>
-        <div class="logo">X</div>
-        <div class="balance" id="balance">Balance: $10,000</div>
-    </header>
+<body class="bg-gray-900 text-white overflow-x-hidden">
+  <!-- Header -->
+  <header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center">
+    <div class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold text-xl">X</div>
+    <div id="balance" class="font-semibold text-lg">Balance: $10,000</div>
+  </header>
 
-    <div class="chart-container">
-        <canvas id="tradingChart"></canvas>
+  <!-- Chart Container -->
+  <div class="max-w-xl mx-auto my-6 bg-gray-800 p-4 rounded-lg">
+    <canvas id="tradingChart"></canvas>
+  </div>
+
+  <!-- Crypto Cards (Auto-scrolling) -->
+  <div id="cryptoList" class="crypto-list no-scrollbar flex space-x-4 px-4 py-2 bg-gray-800 rounded-lg mx-4"></div>
+
+  <!-- Fixed Buy/Sell Buttons -->
+  <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
+    <button onclick="openDialog('buy')" class="buy-btn bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded">BUY</button>
+    <button onclick="openDialog('sell')" class="sell-btn bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded">SELL</button>
+  </div>
+
+  <!-- Transaction Modal -->
+  <div id="transactionDialog" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-gray-800 rounded-lg w-11/12 max-w-md p-6 relative">
+      <button onclick="closeDialog()" class="absolute top-2 right-2 text-2xl font-bold">&times;</button>
+      <h3 id="transactionType" class="text-xl font-semibold mb-4">Transaction</h3>
+      <input type="text" id="txnName" placeholder="Full Name" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
+      <input type="text" id="txnPhone" placeholder="Phone Number" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
+      <input type="number" id="txnAmount" placeholder="Amount ($)" class="w-full p-3 mb-3 rounded bg-gray-700 placeholder-gray-400" />
+      <select id="txnMethod" class="w-full p-3 mb-4 rounded bg-gray-700">
+        <option value="Card">Card</option>
+        <option value="Easypaisa">Easypaisa</option>
+        <option value="JazzCash">JazzCash</option>
+      </select>
+      <button onclick="processTransaction()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded">Confirm</button>
     </div>
+  </div>
 
-    <div class="crypto-list" id="cryptoList">
-        <!-- Crypto cards will be added dynamically -->
-    </div>
+  <!-- JavaScript -->
+  <script>
+    // Initial balance and holdings for simulation
+    let balance = 10000;
+    let prevPrice = null; // For chart comparison
 
-    <div class="buttons">
-        <button class="buy-btn" onclick="openDialog('buy')">BUY</button>
-        <button class="sell-btn" onclick="openDialog('sell')">SELL</button>
-    </div>
+    // Update balance display
+    function updateBalanceDisplay() {
+      document.getElementById("balance").innerText = `Balance: $${balance.toFixed(2)}`;
+    }
+    updateBalanceDisplay();
 
-    <div class="dialog" id="transactionDialog">
-        <div class="close" onclick="closeDialog()">✖</div>
-        <h3 id="transactionType">Transaction</h3>
-        <input type="text" id="name" placeholder="Full Name">
-        <input type="text" id="phone" placeholder="Phone Number">
-        <input type="number" id="amount" placeholder="Amount ($)">
-        <select id="paymentMethod">
-            <option value="Card">Card</option>
-            <option value="Easypaisa">Easypaisa</option>
-            <option value="JazzCash">JazzCash</option>
-        </select>
-        <button onclick="processTransaction()">Confirm</button>
-    </div>
+    // Transaction processing (simulate buy/sell affecting balance)
+    function processTransaction() {
+      const amount = parseFloat(document.getElementById("txnAmount").value);
+      const txnType = document.getElementById("transactionType").innerText.toLowerCase();
+      if (isNaN(amount) || amount <= 0) {
+        alert("Invalid amount!");
+        return;
+      }
+      if (txnType.includes("buy")) {
+        balance -= amount;
+      } else {
+        balance += amount;
+      }
+      updateBalanceDisplay();
+      alert(`${txnType.includes("buy") ? "Purchase" : "Sale"} successful!`);
+      // Reset form fields
+      document.getElementById("txnName").value = "";
+      document.getElementById("txnPhone").value = "";
+      document.getElementById("txnAmount").value = "";
+      closeDialog();
+    }
 
-    <script>
-        let balance = 10000;
-        let prevPrice = null;
+    // Modal control functions
+    function openDialog(type) {
+      document.getElementById("transactionType").innerText = type === "buy" ? "Buy Crypto" : "Sell Crypto";
+      document.getElementById("transactionDialog").classList.remove("hidden");
+    }
+    function closeDialog() {
+      document.getElementById("transactionDialog").classList.add("hidden");
+    }
 
-        function updateBalance(amount, type) {
-            if (type === 'buy') balance -= amount;
-            else balance += amount;
-            document.getElementById("balance").innerText = `Balance: $${balance.toFixed(2)}`;
-            closeDialog();
+    // Chart.js setup for BTC Price chart
+    const ctx = document.getElementById("tradingChart").getContext("2d");
+    const chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [{
+          label: "BTC Price",
+          data: [],
+          borderColor: "green",
+          backgroundColor: "rgba(0, 255, 0, 0.2)",
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 500 },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { display: true, color: "rgba(255, 255, 255, 0.1)" } }
         }
+      }
+    });
 
-        function openDialog(type) {
-            document.getElementById("transactionType").innerText = type === 'buy' ? "Buy Crypto" : "Sell Crypto";
-            document.getElementById("transactionDialog").style.display = "block";
-        }
+    function updateChart() {
+      let newPrice = (Math.random() * 50000 + 10000).toFixed(2);
+      if (prevPrice !== null) {
+        chart.data.datasets[0].borderColor = newPrice > prevPrice ? "green" : "red";
+        chart.data.datasets[0].backgroundColor = newPrice > prevPrice ? "rgba(0,255,0,0.2)" : "rgba(255,0,0,0.2)";
+      }
+      chart.data.labels.push(new Date().toLocaleTimeString());
+      chart.data.datasets[0].data.push(newPrice);
+      if (chart.data.labels.length > 20) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+      }
+      chart.update();
+      prevPrice = newPrice;
+    }
+    setInterval(updateChart, 5000);
 
-        function closeDialog() {
-            document.getElementById("transactionDialog").style.display = "none";
-        }
+    // Auto-scrolling crypto cards with simulated price updates
+    const cryptoList = document.getElementById("cryptoList");
+    const cryptoSymbols = ["BTC", "ETH", "XRP", "LTC", "ADA", "DOT", "DOGE", "SOL", "BNB"];
+    function updateCryptoCards() {
+      cryptoList.innerHTML = "";
+      cryptoSymbols.forEach(symbol => {
+        let price = (Math.random() * 5000 + 1000).toFixed(2);
+        let color = Math.random() > 0.5 ? "green" : "red";
+        let arrow = color === "green" ? "▲" : "▼";
+        cryptoList.innerHTML += `<div class="crypto-card"><span>${symbol}</span>$${price} <span class="font-bold" style="color:${color}">${arrow}</span></div>`;
+      });
+    }
+    updateCryptoCards();
+    setInterval(updateCryptoCards, 5000);
 
-        function processTransaction() {
-            let amount = parseFloat(document.getElementById("amount").value);
-            let type = document.getElementById("transactionType").innerText.includes("Buy") ? "buy" : "sell";
-
-            if (!isNaN(amount) && amount > 0) {
-                alert(`${type === 'buy' ? "Purchase" : "Sale"} successful!`);
-                updateBalance(amount, type);
-            } else {
-                alert("Invalid amount!");
-            }
-        }
-
-        const ctx = document.getElementById("tradingChart").getContext("2d");
-        const chart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: [],
-                datasets: [{
-                    label: "BTC Price",
-                    borderColor: "green",
-                    backgroundColor: "rgba(0, 255, 0, 0.2)",
-                    data: [],
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    tension: 0.1 
-                }]
-            },
-            options: {
-                responsive: true,
-                animation: { duration: 500 },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { grid: { display: true, color: "rgba(255, 255, 255, 0.1)" } }
-                }
-            }
-        });
-
-        function updateChart() {
-            let newPrice = (Math.random() * 50000 + 10000).toFixed(2);
-
-            if (prevPrice !== null) {
-                chart.data.datasets[0].borderColor = newPrice > prevPrice ? "green" : "red";
-            }
-
-            chart.data.labels.push(new Date().toLocaleTimeString());
-            chart.data.datasets[0].data.push(newPrice);
-            if (chart.data.labels.length > 20) {
-                chart.data.labels.shift();
-                chart.data.datasets[0].data.shift();
-            }
-            chart.update();
-
-            prevPrice = newPrice;
-        }
-
-        setInterval(updateChart, 5000);
-    </script>
+    // Smooth auto-scroll for crypto cards
+    setInterval(() => {
+      cryptoList.scrollBy({ left: 2, behavior: "smooth" });
+    }, 100);
+  </script>
 </body>
 </html>
