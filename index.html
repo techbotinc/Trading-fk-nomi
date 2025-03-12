@@ -3,20 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>X Trade - Mobile Trading App</title>
+  <title>X Trade - Crypto Dashboard</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Hide scrollbar for horizontal crypto list */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -28,19 +23,20 @@
 
   <!-- Chart Container -->
   <div class="max-w-xl mx-auto my-4 bg-gray-800 p-4 rounded-lg shadow-lg">
+    <h2 id="chartTitle" class="text-xl font-semibold mb-2 text-center">BTC Price</h2>
     <canvas id="tradingChart"></canvas>
   </div>
 
   <!-- Crypto Cards (Auto-scrolling) -->
   <div id="cryptoList" class="no-scrollbar flex space-x-4 px-4 py-2 bg-gray-800 rounded-lg mx-4 overflow-x-auto"></div>
 
-  <!-- Fixed Buy/Sell Buttons -->
+  <!-- Fixed Buy/Sell Buttons (Optional: You can keep these if needed) -->
   <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
     <button onclick="openDialog('buy')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded">BUY</button>
     <button onclick="openDialog('sell')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded">SELL</button>
   </div>
 
-  <!-- Transaction Modal -->
+  <!-- Transaction Modal (Optional: same modal as before) -->
   <div id="transactionDialog" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
     <div class="bg-gray-800 rounded-lg w-11/12 max-w-md p-6 relative">
       <button onclick="closeDialog()" class="absolute top-2 right-2 text-2xl font-bold">&times;</button>
@@ -59,16 +55,18 @@
 
   <!-- JavaScript -->
   <script>
-    // Initial balance and simulation variables
+    // Global variables
     let balance = 10000;
     let prevPrice = null;
-    
+    let selectedCrypto = "BTC";  // Default crypto for the chart
+
+    // Update balance display (for Buy/Sell modal, if used)
     function updateBalanceDisplay() {
       document.getElementById("balance").innerText = `Balance: $${balance.toFixed(2)}`;
     }
     updateBalanceDisplay();
 
-    // Process transaction and update balance accordingly
+    // Transaction processing (simulate buy/sell affecting balance)
     function processTransaction() {
       const amount = parseFloat(document.getElementById("txnAmount").value);
       const txnType = document.getElementById("transactionType").innerText.toLowerCase();
@@ -89,7 +87,7 @@
       closeDialog();
     }
 
-    // Modal controls
+    // Modal control functions (for Buy/Sell)
     function openDialog(type) {
       document.getElementById("transactionType").innerText = type === "buy" ? "Buy Crypto" : "Sell Crypto";
       document.getElementById("transactionDialog").classList.remove("hidden");
@@ -98,14 +96,14 @@
       document.getElementById("transactionDialog").classList.add("hidden");
     }
 
-    // Chart.js: Real-time updating BTC price chart
+    // Chart.js setup for crypto price chart (using simulated data)
     const ctx = document.getElementById("tradingChart").getContext("2d");
     const chart = new Chart(ctx, {
       type: "line",
       data: {
         labels: [],
         datasets: [{
-          label: "BTC Price",
+          label: selectedCrypto + " Price",
           data: [],
           borderColor: "green",
           backgroundColor: "rgba(0, 255, 0, 0.2)",
@@ -124,8 +122,24 @@
       }
     });
 
+    // Update chart with simulated price data for the selected crypto
     function updateChart() {
-      let newPrice = (Math.random() * 50000 + 10000).toFixed(2);
+      // Simulate a random price range based on selected crypto
+      // (For demo purposes; in a real app, you'd fetch live data)
+      let min = 10000, max = 60000;
+      if(selectedCrypto === "BTC") { min = 10000; max = 60000; }
+      else if(selectedCrypto === "ETH") { min = 500; max = 4000; }
+      else if(selectedCrypto === "XRP") { min = 0.2; max = 2; }
+      else if(selectedCrypto === "LTC") { min = 50; max = 400; }
+      else if(selectedCrypto === "ADA") { min = 0.1; max = 5; }
+      else if(selectedCrypto === "DOT") { min = 2; max = 40; }
+      else if(selectedCrypto === "DOGE") { min = 0.01; max = 1; }
+      else if(selectedCrypto === "SOL") { min = 10; max = 300; }
+      else if(selectedCrypto === "BNB") { min = 100; max = 700; }
+
+      let newPrice = (Math.random() * (max - min) + min).toFixed(2);
+
+      // Change line color based on price movement
       if (prevPrice !== null) {
         chart.data.datasets[0].borderColor = newPrice > prevPrice ? "green" : "red";
         chart.data.datasets[0].backgroundColor = newPrice > prevPrice ? "rgba(0,255,0,0.2)" : "rgba(255,0,0,0.2)";
@@ -141,16 +155,17 @@
     }
     setInterval(updateChart, 5000);
 
-    // Auto-scrolling crypto cards with simulated price updates
+    // Crypto card list: simulate real-time price updates
     const cryptoList = document.getElementById("cryptoList");
     const cryptoSymbols = ["BTC", "ETH", "XRP", "LTC", "ADA", "DOT", "DOGE", "SOL", "BNB"];
     function updateCryptoCards() {
       cryptoList.innerHTML = "";
       cryptoSymbols.forEach(symbol => {
+        // Simulate random price for each crypto card
         let price = (Math.random() * 5000 + 1000).toFixed(2);
         let color = Math.random() > 0.5 ? "green" : "red";
         let arrow = color === "green" ? "▲" : "▼";
-        cryptoList.innerHTML += `<div class="crypto-card">
+        cryptoList.innerHTML += `<div class="crypto-card cursor-pointer" onclick="selectCrypto('${symbol}')" title="Show ${symbol} graph">
           <span>${symbol}</span>
           $${price} <span class="font-bold" style="color:${color}">${arrow}</span>
         </div>`;
@@ -159,7 +174,20 @@
     updateCryptoCards();
     setInterval(updateCryptoCards, 5000);
 
-    // Smooth auto-scroll for crypto cards
+    // When a crypto card is clicked, update the chart to show that crypto's graph
+    function selectCrypto(symbol) {
+      selectedCrypto = symbol;
+      prevPrice = null; // Reset previous price for new simulation
+      // Update chart label and title
+      chart.data.datasets[0].label = symbol + " Price";
+      document.getElementById("chartTitle").innerText = symbol + " Price";
+      // Clear existing data and labels
+      chart.data.labels = [];
+      chart.data.datasets[0].data = [];
+      chart.update();
+    }
+
+    // Auto-scroll for crypto card list
     setInterval(() => {
       cryptoList.scrollBy({ left: 2, behavior: "smooth" });
     }, 100);
