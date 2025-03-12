@@ -244,6 +244,7 @@
                 }, {
                     label: 'Signals',
                     data: [],
+                    type: 'scatter', // Explicitly set as scatter
                     pointRadius: 6,
                     pointHoverRadius: 8,
                     pointBackgroundColor: [],
@@ -314,13 +315,15 @@
                 time: new Date().toLocaleTimeString()
             };
 
-            // Add to chart
-            chart.data.datasets[1].data.push({
+            // Add signal to chart
+            const signalData = {
                 x: new Date().getTime(),
-                y: parseFloat(signal.entryPrice),
-                backgroundColor: direction === 'BUY' ? '#00cc99' : '#ff3366'
-            });
+                y: parseFloat(signal.entryPrice)
+            };
+            chart.data.datasets[1].data.push(signalData);
             chart.data.datasets[1].pointBackgroundColor.push(direction === 'BUY' ? '#00cc99' : '#ff3366');
+            
+            // Limit signals to 5
             if (chart.data.datasets[1].data.length > 5) {
                 chart.data.datasets[1].data.shift();
                 chart.data.datasets[1].pointBackgroundColor.shift();
@@ -330,7 +333,7 @@
             return signal;
         }
 
-        // Display signal
+        // Display signal in list
         function displaySignal(signal) {
             const signalElement = document.createElement('div');
             signalElement.classList.add('signal-item', `signal-${signal.direction.toLowerCase()}`);
