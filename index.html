@@ -51,6 +51,7 @@
             border-radius: 5px;
             background-color: #222;
             font-size: 14px;
+            min-width: 100px;
         }
 
         .chart-container {
@@ -90,6 +91,14 @@
             background: red;
             color: white;
         }
+
+        .up {
+            color: green;
+        }
+
+        .down {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -119,13 +128,13 @@
             let labels = [];
             let prices = [];
             let time = 0;
-
+            let lastPrice = 100;
+            
             function getRandomPrice(lastPrice) {
-                let change = (Math.random() * 2 - 1) * 5; // Random change between -5 to +5
+                let change = (Math.random() * 2 - 1) * 5;
                 return Math.max(50, lastPrice + change);
             }
 
-            let lastPrice = 100;
             for (let i = 0; i < 10; i++) {
                 labels.push(`T-${10 - i}`);
                 lastPrice = getRandomPrice(lastPrice);
@@ -139,7 +148,7 @@
                     datasets: [{
                         label: "Price Movement",
                         data: prices,
-                        borderColor: "#fcd535",
+                        borderColor: prices[prices.length - 1] >= prices[prices.length - 2] ? "green" : "red",
                         backgroundColor: "rgba(252, 213, 53, 0.2)",
                         fill: true,
                         tension: 0.2
@@ -155,25 +164,48 @@
                 },
             });
 
-            setInterval(() => {
+            function updateChart() {
                 time++;
                 labels.push(`T+${time}`);
                 labels.shift();
+
                 lastPrice = getRandomPrice(lastPrice);
                 prices.push(lastPrice);
                 prices.shift();
+
+                chart.data.datasets[0].borderColor = lastPrice >= prices[prices.length - 2] ? "green" : "red";
                 chart.update();
-            }, 5000);
+            }
+
+            setInterval(updateChart, 5000);
 
             function fetchCryptoPrices() {
                 fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin&vs_currencies=usd")
                     .then(response => response.json())
                     .then(data => {
-                        document.getElementById("btc").textContent = `BTC: $${data.bitcoin.usd}`;
-                        document.getElementById("eth").textContent = `ETH: $${data.ethereum.usd}`;
-                        document.getElementById("bnb").textContent = `BNB: $${data.binancecoin.usd}`;
+                        updatePrice("btc", "BTC", data.bitcoin.usd);
+                        updatePrice("eth", "ETH", data.ethereum.usd);
+                        updatePrice("bnb", "BNB", data.binancecoin.usd);
                     })
                     .catch(error => console.log("Error fetching prices:", error));
+            }
+
+            let previousPrices = { btc: null, eth: null, bnb: null };
+
+            function updatePrice(id, name, newPrice) {
+                const element = document.getElementById(id);
+                if (previousPrices[id] !== null) {
+                    if (newPrice > previousPrices[id]) {
+                        element.innerHTML = `${name}: $${newPrice} <span class="up">▲</span>`;
+                    } else if (newPrice < previousPrices[id]) {
+                        element.innerHTML = `${name}: $${newPrice} <span class="down">▼</span>`;
+                    } else {
+                        element.innerHTML = `${name}: $${newPrice}`;
+                    }
+                } else {
+                    element.innerHTML = `${name}: $${newPrice}`;
+                }
+                previousPrices[id] = newPrice;
             }
 
             fetchCryptoPrices();
