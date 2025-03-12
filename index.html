@@ -59,6 +59,7 @@
             background-color: #222;
             font-size: 14px;
             min-width: 100px;
+            transition: color 0.5s ease;
         }
 
         .chart-container {
@@ -73,15 +74,16 @@
 
         .crypto-list {
             display: flex;
-            overflow-x: auto;
             white-space: nowrap;
+            overflow: hidden;
             padding: 10px;
             background: #1a1a1a;
             margin: 10px;
             border-radius: 5px;
+            position: relative;
         }
 
-        .crypto-card {
+        .crypto-list .crypto-card {
             background: #222;
             padding: 15px;
             border-radius: 5px;
@@ -89,6 +91,7 @@
             font-size: 14px;
             min-width: 120px;
             text-align: center;
+            transition: transform 0.5s ease;
         }
 
         .buttons {
@@ -177,14 +180,14 @@
                     borderColor: lineColor,
                     backgroundColor: "rgba(255, 255, 255, 0.1)",
                     fill: false,
-                    borderWidth: 1.5,
-                    tension: 0.2,
+                    borderWidth: 2,
+                    tension: 0.4,
                 }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: false,
+                animation: { duration: 1000 },
                 scales: {
                     y: { grid: { color: "gray" }, ticks: { color: "white" } },
                     x: { grid: { color: "gray" }, ticks: { color: "white" } },
@@ -197,13 +200,11 @@
             labels.shift();
 
             let newPrice = getRandomPrice(prices[prices.length - 1]);
-
             lineColor = newPrice > prices[prices.length - 1] ? "green" : "red";
             chart.data.datasets[0].borderColor = lineColor;
 
             prices.push(newPrice);
             prices.shift();
-
             chart.update();
         }
 
@@ -228,12 +229,9 @@
                 if (newPrice > previousPrices[id]) {
                     element.innerHTML = `${name}: $${newPrice} <span class="up">▲</span>`;
                     element.style.color = "green";
-                } else if (newPrice < previousPrices[id]) {
+                } else {
                     element.innerHTML = `${name}: $${newPrice} <span class="down">▼</span>`;
                     element.style.color = "red";
-                } else {
-                    element.innerHTML = `${name}: $${newPrice}`;
-                    element.style.color = "white";
                 }
             } else {
                 element.innerHTML = `${name}: $${newPrice}`;
@@ -244,20 +242,23 @@
         function generateCryptoCards() {
             const cryptos = ["DOGE", "SOL", "XRP", "ADA", "DOT", "SHIB", "MATIC", "LTC", "AVAX"];
             const container = document.getElementById("cryptoCards");
-            container.innerHTML = "";
-            cryptos.forEach(symbol => {
+            container.innerHTML = cryptos.map(symbol => {
                 let price = (Math.random() * 500 + 10).toFixed(2);
                 let color = Math.random() > 0.5 ? "green" : "red";
                 let arrow = color === "green" ? "▲" : "▼";
-                let card = `<div class="crypto-card" style="color:${color}">${symbol}: $${price} <span>${arrow}</span></div>`;
-                container.innerHTML += card;
-            });
+                return `<div class="crypto-card" style="color:${color}">${symbol}: $${price} <span>${arrow}</span></div>`;
+            }).join("");
+        }
+
+        function autoScrollCards() {
+            document.getElementById("cryptoCards").scrollBy({ left: 2, behavior: "smooth" });
         }
 
         fetchCryptoPrices();
         setInterval(fetchCryptoPrices, 5000);
         generateCryptoCards();
         setInterval(generateCryptoCards, 5000);
+        setInterval(autoScrollCards, 100);
     </script>
 </body>
 </html>
