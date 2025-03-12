@@ -10,9 +10,9 @@
             font-family: Arial, sans-serif;
             background-color: #121212;
             color: #fff;
-            text-align: center;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
         }
 
         header {
@@ -62,13 +62,33 @@
         }
 
         .chart-container {
-            width: 90%;
+            width: 100%;
             max-width: 600px;
             height: 300px;
             margin: 20px auto;
             background: #1a1a1a;
             padding: 10px;
             border-radius: 10px;
+        }
+
+        .crypto-list {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px;
+            background: #1a1a1a;
+            margin: 10px;
+            border-radius: 5px;
+        }
+
+        .crypto-card {
+            background: #222;
+            padding: 15px;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 14px;
+            min-width: 120px;
+            text-align: center;
         }
 
         .buttons {
@@ -94,6 +114,16 @@
 
         .up { color: green; font-weight: bold; }
         .down { color: red; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            .buttons {
+                bottom: 15px;
+            }
+            .buy-btn, .sell-btn {
+                padding: 12px 25px;
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -112,6 +142,8 @@
         <canvas id="tradingChart"></canvas>
     </div>
 
+    <div class="crypto-list" id="cryptoCards"></div>
+
     <div class="buttons">
         <button class="buy-btn">BUY</button>
         <button class="sell-btn">SELL</button>
@@ -121,16 +153,16 @@
         const ctx = document.getElementById("tradingChart").getContext("2d");
         let labels = [];
         let prices = [];
-        let lastPrice = 50000; // Starting BTC price
+        let lastPrice = 50000;
         let lineColor = "green";
 
         function getRandomPrice(lastPrice) {
-            let change = (Math.random() * 2 - 1) * 500; // Random change between -500 to +500
+            let change = (Math.random() * 2 - 1) * 500;
             return Math.max(30000, lastPrice + change);
         }
 
-        for (let i = 0; i < 10; i++) {
-            labels.push(`T-${10 - i}`);
+        for (let i = 0; i < 20; i++) {
+            labels.push(`T-${20 - i}`);
             lastPrice = getRandomPrice(lastPrice);
             prices.push(lastPrice);
         }
@@ -146,12 +178,13 @@
                     backgroundColor: "rgba(255, 255, 255, 0.1)",
                     fill: false,
                     borderWidth: 1.5,
-                    tension: 0.2, // Smooth curve
+                    tension: 0.2,
                 }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
                 scales: {
                     y: { grid: { color: "gray" }, ticks: { color: "white" } },
                     x: { grid: { color: "gray" }, ticks: { color: "white" } },
@@ -165,7 +198,6 @@
 
             let newPrice = getRandomPrice(prices[prices.length - 1]);
 
-            // Change line color based on price movement
             lineColor = newPrice > prices[prices.length - 1] ? "green" : "red";
             chart.data.datasets[0].borderColor = lineColor;
 
@@ -209,8 +241,23 @@
             previousPrices[id] = newPrice;
         }
 
+        function generateCryptoCards() {
+            const cryptos = ["DOGE", "SOL", "XRP", "ADA", "DOT", "SHIB", "MATIC", "LTC", "AVAX"];
+            const container = document.getElementById("cryptoCards");
+            container.innerHTML = "";
+            cryptos.forEach(symbol => {
+                let price = (Math.random() * 500 + 10).toFixed(2);
+                let color = Math.random() > 0.5 ? "green" : "red";
+                let arrow = color === "green" ? "▲" : "▼";
+                let card = `<div class="crypto-card" style="color:${color}">${symbol}: $${price} <span>${arrow}</span></div>`;
+                container.innerHTML += card;
+            });
+        }
+
         fetchCryptoPrices();
         setInterval(fetchCryptoPrices, 5000);
+        generateCryptoCards();
+        setInterval(generateCryptoCards, 5000);
     </script>
 </body>
 </html>
