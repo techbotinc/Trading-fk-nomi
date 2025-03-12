@@ -3,402 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sleek Trading App</title>
+    <title>Trading App</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Arial', sans-serif;
         }
 
         body {
-            background: #1a1a2e;
+            background-color: #000000;
             color: #ffffff;
-            min-height: 100vh;
-            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 3fr 1fr;
-            gap: 20px;
         }
 
-        .sidebar {
-            background: #16213e;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .main-content {
+        .header {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
         }
 
         .chart-container {
-            background: #16213e;
-            border-radius: 10px;
+            background-color: #1a1a1a;
             padding: 20px;
-            height: 400px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .signals-panel {
-            background: #16213e;
             border-radius: 10px;
-            padding: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
         }
 
-        .order-panel {
-            background: #16213e;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .pair-item {
-            padding: 10px;
-            border-bottom: 1px solid #2a2a4e;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .pair-item:hover {
-            background: #2a2a4e;
-        }
-
-        .pair-item.active {
-            background: #0f3460;
-        }
-
-        .signal-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-            animation: slideIn 0.3s ease;
-        }
-
-        .signal-buy {
-            border-left: 4px solid #00cc99;
-        }
-
-        .signal-sell {
-            border-left: 4px solid #ff3366;
-        }
-
-        .order-form {
-            display: flex;
-            flex-direction: column;
+        .signals-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
+            margin-bottom: 20px;
         }
 
-        .input-group {
+        .signal-card {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffffff;
+        }
+
+        .trade-buttons {
             display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        select, input {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #2a2a4e;
-            color: #ffffff;
-            transition: background 0.3s;
-        }
-
-        select:focus, input:focus {
-            outline: none;
-            background: #3a3a5e;
+            gap: 10px;
+            justify-content: center;
         }
 
         button {
-            padding: 12px;
+            padding: 12px 30px;
             border: none;
             border-radius: 5px;
-            background: linear-gradient(45deg, #ff3366, #e94560);
-            color: #fff;
             cursor: pointer;
-            transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        .buy-btn {
+            background-color: #ffffff;
+            color: #000000;
         }
 
-        h2 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: #e94560;
+        .sell-btn {
+            background-color: #333333;
+            color: #ffffff;
         }
 
-        canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-                padding: 10px;
-            }
-            .chart-container {
-                height: 300px;
-            }
-            .signals-panel {
-                max-height: 200px;
-            }
+        .balance {
+            font-size: 1.2em;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar with Trading Pairs -->
-        <div class="sidebar">
-            <h2>Trading Pairs</h2>
-            <div id="tradingPairs"></div>
+        <div class="header">
+            <h1>TRADING APP</h1>
+            <div class="balance">Balance: $<span id="balance">50,000.00</span></div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <div class="chart-container">
-                <canvas id="priceChart"></canvas>
-            </div>
-            <div class="signals-panel">
-                <h2>Trading Signals</h2>
-                <div id="signalsList"></div>
-            </div>
+        <div class="chart-container">
+            <canvas id="priceChart"></canvas>
         </div>
 
-        <!-- Order Panel -->
-        <div class="order-panel">
-            <h2>Place Order</h2>
-            <div class="order-form">
-                <div class="input-group">
-                    <select id="orderPair"></select>
-                </div>
-                <div class="input-group">
-                    <input type="number" id="orderAmount" placeholder="Amount">
-                </div>
-                <div class="input-group">
-                    <input type="number" id="orderPrice" placeholder="Price">
-                </div>
-                <button onclick="placeOrder()">Place Order</button>
-            </div>
+        <div class="signals-container" id="signalsContainer"></div>
+
+        <div class="trade-buttons">
+            <button class="buy-btn" onclick="executeTrade('buy')">BUY</button>
+            <button class="sell-btn" onclick="executeTrade('sell')">SELL</button>
         </div>
     </div>
 
     <script>
-        const tradingPairs = [
-            { name: 'BTC/USD', price: 56894.32 },
-            { name: 'ETH/USD', price: 2345.67 },
-            { name: 'XRP/USD', price: 0.5432 },
-            { name: 'LTC/USD', price: 89.45 }
-        ];
-        let currentPair = tradingPairs[0];
-        let chart;
+        // Generate random price data
+        function generatePriceData() {
+            const data = [];
+            let price = 100;
+            for (let i = 0; i < 50; i++) {
+                price += (Math.random() - 0.5) * 10;
+                data.push(price.toFixed(2));
+            }
+            return data;
+        }
 
-        // DOM Elements
-        const pairList = document.getElementById('tradingPairs');
-        const orderPair = document.getElementById('orderPair');
-        const signalsList = document.getElementById('signalsList');
-
-        // Populate trading pairs
-        tradingPairs.forEach(pair => {
-            const pairItem = document.createElement('div');
-            pairItem.classList.add('pair-item');
-            pairItem.innerHTML = `${pair.name} <span class="price">${pair.price.toFixed(2)}</span>`;
-            pairItem.addEventListener('click', () => {
-                document.querySelectorAll('.pair-item').forEach(item => item.classList.remove('active'));
-                pairItem.classList.add('active');
-                currentPair = pair;
-                orderPair.value = pair.name;
-                resetChart();
-            });
-            pairList.appendChild(pairItem);
-
-            const option = document.createElement('option');
-            option.value = pair.name;
-            option.textContent = pair.name;
-            orderPair.appendChild(option);
-        });
-
-        // Chart Initialization
+        // Initialize chart
         const ctx = document.getElementById('priceChart').getContext('2d');
-        const initialData = Array(20).fill(0).map((_, i) => ({
-            x: new Date().getTime() - (20 - i) * 2000,
-            y: currentPair.price + (Math.random() - 0.5) * 100
-        }));
-
-        chart = new Chart(ctx, {
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
-                datasets: [
-                    {
-                        label: 'Price',
-                        data: initialData,
-                        borderColor: '#e94560',
-                        backgroundColor: 'rgba(233, 69, 96, 0.1)',
-                        fill: true,
-                        pointRadius: 0,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Buy Signals',
-                        data: [],
-                        borderWidth: 0,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                        pointBackgroundColor: '#00cc99',
-                        pointBorderColor: 'white',
-                        pointBorderWidth: 2,
-                        showLine: false
-                    },
-                    {
-                        label: 'Sell Signals',
-                        data: [],
-                        borderWidth: 0,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                        pointBackgroundColor: '#ff3366',
-                        pointBorderColor: 'white',
-                        pointBorderWidth: 2,
-                        showLine: false
-                    }
-                ]
+                labels: Array(50).fill(''),
+                datasets: [{
+                    label: 'Price',
+                    data: generatePriceData(),
+                    borderColor: '#ffffff',
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 0
+                }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: { type: 'time', time: { unit: 'second' }, display: false },
-                    y: { beginAtZero: false, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                    y: {
+                        grid: { color: '#333333' },
+                        ticks: { color: '#ffffff' }
+                    },
+                    x: { display: false }
                 },
-                plugins: { legend: { display: false } }
+                plugins: {
+                    legend: { display: false }
+                }
             }
         });
 
-        // Update Prices
-        function updatePrices() {
-            tradingPairs.forEach(pair => {
-                pair.price += (Math.random() - 0.5) * 100;
-                const pairItem = pairList.querySelector(`[data-pair="${pair.name}"]`) || 
-                    Array.from(pairList.children).find(item => item.textContent.includes(pair.name));
-                if (pairItem) pairItem.querySelector('.price').textContent = pair.price.toFixed(2);
+        // Generate random signals
+        function generateSignals() {
+            const signals = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'ADA/USDT', 'DOT/USDT'];
+            const signalsContainer = document.getElementById('signalsContainer');
+            signalsContainer.innerHTML = '';
 
-                if (pair === currentPair) {
-                    chart.data.datasets[0].data.push({
-                        x: new Date().getTime(),
-                        y: pair.price
-                    });
-                    if (chart.data.datasets[0].data.length > 20) {
-                        chart.data.datasets[0].data.shift();
-                    }
-                    chart.update();
-                }
+            signals.forEach(pair => {
+                const change = (Math.random() - 0.5) * 10;
+                const card = document.createElement('div');
+                card.className = 'signal-card';
+                card.innerHTML = `
+                    <h3>${pair}</h3>
+                    <p>Price: $${(Math.random() * 50000).toFixed(2)}</p>
+                    <p style="color: ${change >= 0 ? '#00ff00' : '#ff0000'}">
+                        ${change.toFixed(2)}%
+                    </p>
+                `;
+                signalsContainer.appendChild(card);
             });
         }
 
-        // Generate Random Signal
-        function generateRandomSignal() {
-            const direction = Math.random() < 0.5 ? 'BUY' : 'SELL';
-            const entryPrice = currentPair.price + (Math.random() * 100 - 50);
-            const stopLoss = direction === 'BUY' ? entryPrice * 0.95 : entryPrice * 1.05;
-            const takeProfit = direction === 'BUY' ? entryPrice * 1.05 : entryPrice * 0.95;
-
-            const signal = {
-                pair: currentPair.name,
-                direction,
-                entryPrice: entryPrice.toFixed(2),
-                stopLoss: stopLoss.toFixed(2),
-                takeProfit: takeProfit.toFixed(2),
-                time: new Date().toLocaleTimeString()
-            };
-
-            // Add to chart
-            const signalDataset = direction === 'BUY' ? chart.data.datasets[1] : chart.data.datasets[2];
-            signalDataset.data.push({
-                x: new Date().getTime(),
-                y: parseFloat(signal.entryPrice)
-            });
-            if (signalDataset.data.length > 5) {
-                signalDataset.data.shift();
-            }
-            chart.update();
-
-            return signal;
-        }
-
-        // Display Signal
-        function displaySignal(signal) {
-            const signalElement = document.createElement('div');
-            signalElement.classList.add('signal-item', `signal-${signal.direction.toLowerCase()}`);
-            signalElement.innerHTML = `
-                <strong>${signal.pair} - ${signal.direction}</strong><br>
-                Entry: ${signal.entryPrice}<br>
-                SL: ${signal.stopLoss}<br>
-                TP: ${signal.takeProfit}<br>
-                Time: ${signal.time}
-            `;
-            signalsList.insertBefore(signalElement, signalsList.firstChild);
-            if (signalsList.children.length > 5) {
-                signalsList.removeChild(signalsList.lastChild);
-            }
-        }
-
-        // Place Order
-        function placeOrder() {
-            const pair = orderPair.value;
-            const amount = document.getElementById('orderAmount').value;
-            const price = document.getElementById('orderPrice').value;
-            if (amount && price) {
-                alert(`Order placed!\nPair: ${pair}\nAmount: ${amount}\nPrice: ${price}`);
-                document.getElementById('orderAmount').value = '';
-                document.getElementById('orderPrice').value = '';
-            } else {
-                alert('Please fill in all fields');
-            }
-        }
-
-        // Reset Chart
-        function resetChart() {
-            chart.data.datasets[0].data = Array(20).fill(0).map((_, i) => ({
-                x: new Date().getTime() - (20 - i) * 2000,
-                y: currentPair.price + (Math.random() - 0.5) * 100
-            }));
-            chart.data.datasets[1].data = [];
-            chart.data.datasets[2].data = [];
-            chart.update();
-        }
-
-        // Intervals
-        setInterval(updatePrices, 2000);
+        // Update data periodically
         setInterval(() => {
-            const signal = generateRandomSignal();
-            displaySignal(signal);
+            chart.data.datasets[0].data = generatePriceData();
+            chart.update();
+            generateSignals();
+            document.getElementById('balance').textContent = 
+                (Math.random() * 100000).toLocaleString('en-US', {minimumFractionDigits: 2});
         }, 5000);
 
-        // Initial Setup
-        pairList.children[0].classList.add('active');
-        orderPair.value = tradingPairs[0].name;
-        displaySignal(generateRandomSignal());
+        // Trade execution
+        function executeTrade(type) {
+            alert(`Order to ${type} executed!\nSimulated trade - no real transaction`);
+        }
+
+        // Initial signals
+        generateSignals();
     </script>
 </body>
 </html>
