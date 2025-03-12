@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X Trade</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -45,23 +44,6 @@
             font-weight: bold;
         }
 
-        .market-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            padding: 15px;
-            background-color: #1a1a1a;
-            border-bottom: 2px solid #333;
-        }
-
-        .crypto {
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #222;
-            font-size: 14px;
-            min-width: 100px;
-        }
-
         .chart-container {
             width: 90%;
             max-width: 600px;
@@ -90,23 +72,8 @@
             border-radius: 5px;
         }
 
-        .buy-btn {
-            background: green;
-            color: white;
-        }
-
-        .sell-btn {
-            background: red;
-            color: white;
-        }
-
-        .up {
-            color: green;
-        }
-
-        .down {
-            color: red;
-        }
+        .buy-btn { background: green; color: white; }
+        .sell-btn { background: red; color: white; }
     </style>
 </head>
 <body>
@@ -114,12 +81,6 @@
         <div class="logo">X</div>
         <div class="balance">Balance: $10,000</div>
     </header>
-
-    <div class="market-container">
-        <div class="crypto" id="btc">BTC: Loading...</div>
-        <div class="crypto" id="eth">ETH: Loading...</div>
-        <div class="crypto" id="bnb">BNB: Loading...</div>
-    </div>
 
     <div class="chart-container">
         <canvas id="tradingChart"></canvas>
@@ -131,110 +92,57 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const ctx = document.getElementById("tradingChart").getContext("2d");
-            
-            let time = 0;
-            let lastPrice = 100;
-            
-            function getRandomPrice(lastPrice) {
-                let change = (Math.random() * 2 - 1) * 5;
-                return Math.max(50, lastPrice + change);
-            }
+        const ctx = document.getElementById("tradingChart").getContext("2d");
+        let labels = [];
+        let prices = [];
+        let lastPrice = 100;
 
-            let candlestickData = [];
+        function getRandomPrice(lastPrice) {
+            let change = (Math.random() * 2 - 1) * 5;
+            return Math.max(50, lastPrice + change);
+        }
 
-            for (let i = 0; i < 10; i++) {
-                lastPrice = getRandomPrice(lastPrice);
-                candlestickData.push({
-                    x: new Date().getTime() - (10 - i) * 5000,
-                    o: lastPrice - Math.random() * 2,
-                    h: lastPrice + Math.random() * 5,
-                    l: lastPrice - Math.random() * 5,
-                    c: lastPrice + Math.random() * 2
-                });
-            }
+        for (let i = 0; i < 10; i++) {
+            labels.push(`T-${10 - i}`);
+            lastPrice = getRandomPrice(lastPrice);
+            prices.push(lastPrice);
+        }
 
-            const chart = new Chart(ctx, {
-                type: "candlestick",
-                data: {
-                    datasets: [{
-                        label: "Price Movement",
-                        data: candlestickData,
-                        borderColor: "white",
-                        color: {
-                            up: "green",
-                            down: "red",
-                            unchanged: "gray"
-                        }
-                    }],
+        const chart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Price Movement",
+                    data: prices,
+                    borderColor: "white",
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    fill: true,
+                    tension: 0.2
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { grid: { color: "gray" }, ticks: { color: "white" } },
+                    x: { grid: { color: "gray" }, ticks: { color: "white" } },
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: { unit: 'second' },
-                            grid: { color: "gray" },
-                            ticks: { color: "white" }
-                        },
-                        y: { grid: { color: "gray" }, ticks: { color: "white" } }
-                    },
-                },
-            });
-
-            function updateChart() {
-                time++;
-                lastPrice = getRandomPrice(lastPrice);
-
-                candlestickData.push({
-                    x: new Date().getTime(),
-                    o: lastPrice - Math.random() * 2,
-                    h: lastPrice + Math.random() * 5,
-                    l: lastPrice - Math.random() * 5,
-                    c: lastPrice + Math.random() * 2
-                });
-
-                if (candlestickData.length > 10) candlestickData.shift();
-
-                chart.update();
-            }
-
-            setInterval(updateChart, 5000);
-
-            function fetchCryptoPrices() {
-                fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin&vs_currencies=usd")
-                    .then(response => response.json())
-                    .then(data => {
-                        updatePrice("btc", "BTC", data.bitcoin.usd);
-                        updatePrice("eth", "ETH", data.ethereum.usd);
-                        updatePrice("bnb", "BNB", data.binancecoin.usd);
-                    })
-                    .catch(error => console.log("Error fetching prices:", error));
-            }
-
-            let previousPrices = { btc: null, eth: null, bnb: null };
-
-            function updatePrice(id, name, newPrice) {
-                const element = document.getElementById(id);
-                if (previousPrices[id] !== null) {
-                    if (newPrice > previousPrices[id]) {
-                        element.innerHTML = `${name}: $${newPrice} <span class="up">▲</span>`;
-                    } else if (newPrice < previousPrices[id]) {
-                        element.innerHTML = `${name}: $${newPrice} <span class="down">▼</span>`;
-                    } else {
-                        element.innerHTML = `${name}: $${newPrice}`;
-                    }
-                } else {
-                    element.innerHTML = `${name}: $${newPrice}`;
-                }
-                previousPrices[id] = newPrice;
-            }
-
-            fetchCryptoPrices();
-            setInterval(fetchCryptoPrices, 5000);
+            },
         });
+
+        function updateChart() {
+            labels.push(`T+${labels.length}`);
+            labels.shift();
+
+            lastPrice = getRandomPrice(lastPrice);
+            prices.push(lastPrice);
+            prices.shift();
+
+            chart.update();
+        }
+
+        setInterval(updateChart, 5000);
     </script>
 </body>
 </html>
