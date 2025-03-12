@@ -11,7 +11,7 @@
   <!-- Time adapter for Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
-    /* Hide scrollbar for horizontal crypto list */
+    /* Hide scrollbar for horizontal lists */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .smooth-scroll { scroll-behavior: smooth; }
@@ -30,12 +30,12 @@
 
   <!-- Main Content -->
   <main class="px-4 py-4">
-    <!-- Trading Chart in a horizontally scrollable container -->
+    <!-- Trading Chart in a scrollable container -->
     <div class="overflow-x-auto no-scrollbar smooth-scroll">
-      <div class="bg-gray-800 p-4 rounded-lg shadow-lg" style="width: 1200px; margin: auto;">
+      <div id="chartContainer" class="bg-gray-800 p-4 rounded-lg shadow-lg min-w-full">
         <h2 id="chartTitle" class="text-center text-xl font-semibold mb-2">BTC Price</h2>
-        <!-- Increased height using inline style -->
-        <canvas id="tradingChart" class="w-full" style="height: 24rem;"></canvas>
+        <!-- The canvas height is fixed; its width is set dynamically -->
+        <canvas id="tradingChart" style="height: 24rem;"></canvas>
       </div>
     </div>
 
@@ -173,6 +173,12 @@
       }
       tradingChart.update();
       prevChartPrice = newPrice;
+
+      // Dynamically adjust the chart container width based on the number of data points
+      const baseWidth = window.innerWidth;
+      const widthPerData = 60; // pixels per data point
+      const desiredWidth = Math.max(baseWidth, tradingChart.data.labels.length * widthPerData);
+      document.getElementById("chartContainer").style.width = desiredWidth + "px";
     }
     setInterval(updateChart, 5000);
 
@@ -244,6 +250,20 @@
       document.getElementById("txnPhone").value = "";
       document.getElementById("txnAmount").value = "";
       closeTradeModal();
+    }
+  </script>
+
+  <!-- Chart container wrapper for dynamic width -->
+  <script>
+    // Wrap the chart canvas in a container with id "chartContainer"
+    // If not already present, create it.
+    const canvas = document.getElementById("tradingChart");
+    if (!document.getElementById("chartContainer")) {
+      const wrapper = document.createElement("div");
+      wrapper.id = "chartContainer";
+      wrapper.className = "bg-gray-800 p-4 rounded-lg shadow-lg min-w-full mx-auto";
+      canvas.parentNode.insertBefore(wrapper, canvas);
+      wrapper.appendChild(canvas);
     }
   </script>
 </body>
